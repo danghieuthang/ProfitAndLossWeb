@@ -1,18 +1,15 @@
 <template>
   <div class="main">
-    <a-form
-      id="formLogin"
-      class="user-layout-login"
-      ref="formLogin"
-      :form="form"
-      @submit="handleSubmit"
-    >
-      <a-tabs
-        :activeKey="customActiveKey"
-        :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }"
-      >
+    <a-form id="formLogin" class="user-layout-login" ref="formLogin" :form="form" @submit="handleSubmit">
+      <a-tabs :activeKey="customActiveKey" :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }">
         <a-tab-pane key="tab1" tab="Login">
-          <a-alert v-if="isLoginError" type="error" showIcon style="margin-bottom: 24px;" message="User name or password are incorrect!" />
+          <a-alert
+            v-if="isLoginError"
+            type="error"
+            showIcon
+            style="margin-bottom: 24px"
+            message="User name or password are incorrect!"
+          />
           <a-form-item>
             <a-input
               size="large"
@@ -20,10 +17,10 @@
               placeholder="User name: admin"
               v-decorator="[
                 'username',
-                {rules: [{ required: true, message: 'User name must be required!' }], validateTrigger: 'change'}
+                { rules: [{ required: true, message: 'User name must be required!' }], validateTrigger: 'change' },
               ]"
             >
-              <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
+              <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }" />
             </a-input>
           </a-form-item>
 
@@ -33,10 +30,10 @@
               placeholder="Password: admin or ant.design"
               v-decorator="[
                 'password',
-                {rules: [{ required: true, message: 'Password must be required' }], validateTrigger: 'blur'}
+                { rules: [{ required: true, message: 'Password must be required' }], validateTrigger: 'blur' },
               ]"
             >
-              <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }"/>
+              <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }" />
             </a-input-password>
           </a-form-item>
         </a-tab-pane>
@@ -45,13 +42,14 @@
       <a-form-item>
         <a-checkbox v-decorator="['rememberMe', { valuePropName: 'checked' }]">Remember me</a-checkbox>
         <router-link
-          :to="{ name: 'recover', params: { user: 'aaa'} }"
+          :to="{ name: 'recover', params: { user: 'aaa' } }"
           class="forge-password"
-          style="float: right;"
-        >Forgot my account</router-link>
+          style="float: right"
+        >Forgot my account</router-link
+        >
       </a-form-item>
 
-      <a-form-item style="margin-top:24px">
+      <a-form-item style="margin-top: 24px">
         <a-button
           size="large"
           type="primary"
@@ -59,7 +57,8 @@
           class="login-button"
           :loading="state.loginBtn"
           :disabled="state.loginBtn"
-        >Login</a-button>
+        >Login</a-button
+        >
       </a-form-item>
 
       <div class="user-login-other">
@@ -85,7 +84,7 @@ import { ACCESS_TOKEN } from '@/store/mutation-types'
 const UserRepository = RepositoryFactory.get('users')
 
 export default {
-  components: { },
+  components: {},
   data () {
     return {
       customActiveKey: 'tab1',
@@ -127,11 +126,10 @@ export default {
           UserRepository.login(user)
             .then((res) => {
               var data = res.data
-              console.log(data)
-              if (data.success) this.loginSuccess(res)
+              if (data.success) this.loginSuccess(data)
               if (!data.success) this.isLoginError = true
-              })
-            .catch(err => this.requestFailed(err))
+            })
+            .catch((err) => this.requestFailed(err))
             .finally(() => {
               state.loginBtn = false
             })
@@ -144,7 +142,7 @@ export default {
     },
     loginSuccess (res) {
       console.log('success: ' + res)
-      storage.set(ACCESS_TOKEN, res.data.data['access-token'], 7 * 24 * 60 * 60 * 1000)
+      storage.set(ACCESS_TOKEN, res.results['access-token'], 7 * 24 * 60 * 60 * 1000)
       this.$router.push({ path: '/' })
       setTimeout(() => {
         this.$notification.success({
@@ -162,7 +160,6 @@ export default {
         duration: 4
       })
     }
-
   }
 }
 </script>

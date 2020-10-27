@@ -1,10 +1,10 @@
 import Repository from './Repository'
 const resource = '/receipts'
 export default {
-    get () {
-        return Repository.get(`${resource}`)
+    get (params) {
+        return Repository.get(`${resource}`, { params: params })
     },
-    createReceipt () {
-        return Repository.post(`${resource}`)
+    createReceipt (data) {
+        return Repository.post(`${resource}`, data)
     }
 }

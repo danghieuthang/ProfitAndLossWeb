@@ -1,32 +1,73 @@
 <template>
   <a-modal
-    title="新建规则"
-    :width="640"
     :visible="visible"
-    :confirmLoading="loading"
-    @ok="() => { $emit('ok') }"
-    @cancel="() => { $emit('cancel') }"
+    title="Add new receipt"
+    okText="Add"
+    @cancel="
+      () => {
+        $emit('cancel')
+      }
+    "
+    @ok="createReceipt"
   >
-    <a-spin :spinning="loading">
-      <a-form :form="form" v-bind="formLayout">
-        <!-- 检查是否有 id 并且大于0，大于0是修改。其他是新增，新增不显示主键ID -->
-        <a-form-item v-show="model && model.id > 0" label="主键ID">
-          <a-input v-decorator="['id', { initialValue: 0 }]" disabled />
-        </a-form-item>
-        <a-form-item label="描述">
-          <a-input v-decorator="['description', {rules: [{required: true, min: 5, message: '请输入至少五个字符的规则描述！'}]}]" />
-        </a-form-item>
-      </a-form>
-    </a-spin>
+    <a-form layout="vertical" :form="form">
+      <a-form-item label="Store">
+        <a-select v-model="receipt.store_id" de>
+          <!-- <a-select-option>Please select store: </a-select-option> -->
+          <a-select-option v-for="store in stores" :key="store.id">
+            {{ store.code }} - {{ store.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Description">
+        <a-input
+          v-model="receipt.description"
+          type="textarea"
+          v-decorator="[
+            'description',
+            {
+              rules: [{ required: true, message: 'Please input the description of receipt!' }],
+            },
+          ]"
+        />
+      </a-form-item>
+      <a-form-item label="Price">
+        <a-input
+          v-model="receipt.price"
+          type="number"
+          v-decorator="[
+            'price',
+            {
+              initValue: { number: 0 },
+              rules: [{ validator: checkPrice }],
+            },
+          ]"
+        />
+      </a-form-item>
+      <a-form-item label="Supplier">
+        <a-select v-model="receipt.supplier_id" de>
+          <a-select-option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+            {{ supplier.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Receipt Type">
+        <a-select v-model="receipt.type_id" de>
+          <a-select-option v-for="type in types" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-form>
   </a-modal>
 </template>
 
 <script>
-import pick from 'lodash.pick'
-
-// 表单字段
-const fields = ['description', 'id']
-
+import { RepositoryFactory } from '@/repositories/RepositoryFactory'
+const StoreRepository = RepositoryFactory.get('stores')
+const SupplierRepository = RepositoryFactory.get('suppliers')
+const ReceiptTypeRepository = RepositoryFactory.get('receipt_types')
+const ReceiptRepository = RepositoryFactory.get('receipts')
 export default {
   props: {
     visible: {
@@ -54,19 +95,67 @@ export default {
       }
     }
     return {
-      form: this.$form.createForm(this)
+      form: this.$form.createForm(this, { name: 'dynamic_rule' }),
+      stores: [],
+      suppliers: [],
+      types: [],
+      receipt: {
+        store_id: '',
+        description: '',
+        price: 0,
+        type_id: '',
+        supplier_id: ''
+      }
     }
   },
-  created () {
-    console.log('custom modal created')
-
-    // 防止表单未注册
-    fields.forEach(v => this.form.getFieldDecorator(v))
-
-    // 当 model 发生改变时，为表单设置值
-    this.$watch('model', () => {
-      this.model && this.form.setFieldsValue(pick(this.model, fields))
+  mounted () {
+    StoreRepository.get().then((res) => {
+      const rs = res.data.results
+      this.stores = rs
+      this.receipt.store_id = rs[0].id
     })
+    SupplierRepository.get().then((res) => {
+      const rs = res.data.results
+      this.suppliers = rs
+      this.receipt.supplier_id = rs[0].id
+    })
+    ReceiptTypeRepository.get().then((res) => {
+      const rs = res.data.results
+      this.types = rs
+      this.receipt.type_id = rs[0].id
+    })
+  },
+  methods: {
+    checkPrice (rule, value, callback) {
+      if (this.receipt.price > 0) {
+        callback()
+        return
+      }
+      // eslint-disable-next-line standard/no-callback-literal
+      callback('Price must greater than zero!')
+    },
+    createReceipt () {
+      this.form.validateFields((err) => {
+        if (!err) {
+          ReceiptRepository.createReceipt(this.receipt).then((res) => {
+              this.$emit('create', res.data)
+          })
+        } else {
+        }
+      })
+    }
   }
 }
 </script>
+<style>
+/* you can make up upload button and sample style by using stylesheets */
+.ant-upload-select-picture-card i {
+  font-size: 32px;
+  color: #999;
+}
+
+.ant-upload-select-picture-card .ant-upload-text {
+  margin-top: 8px;
+  color: #666;
+}
+</style>

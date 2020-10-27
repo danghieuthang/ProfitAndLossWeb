@@ -9,15 +9,14 @@ var _Repository = _interopRequireDefault(require("./Repository"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-var resource = '/receipts';
+var resource = '/evidences';
 var _default = {
-  get: function get(params) {
-    return _Repository["default"].get("".concat(resource), {
-      params: params
+  addEvidence: function addEvidence(formData) {
+    return _Repository["default"].post("".concat(resource), formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     });
-  },
-  createReceipt: function createReceipt(data) {
-    return _Repository["default"].post("".concat(resource), data);
   }
 };
 exports["default"] = _default;

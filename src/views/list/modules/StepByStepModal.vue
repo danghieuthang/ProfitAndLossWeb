@@ -1,6 +1,6 @@
 <template>
   <a-modal
-    title="分步对话框"
+    title="Step"
     :width="640"
     :visible="visible"
     :confirmLoading="confirmLoading"

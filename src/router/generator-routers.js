@@ -3,13 +3,12 @@ import * as loginService from '@/api/login'
 // eslint-disable-next-line
 import { BasicLayout, BlankLayout, PageView, RouteView } from '@/layouts'
 
-// 前端路由表
 const constantRouterComponents = {
-  // 基础页面 layout 必须引入
   BasicLayout: BasicLayout,
   BlankLayout: BlankLayout,
   RouteView: RouteView,
   PageView: PageView,
+  'SplitTransaction': () => import('@/views/transaction/SplitTransaction'),
   '403': () => import(/* webpackChunkName: "error" */ '@/views/exception/403'),
   '404': () => import(/* webpackChunkName: "error" */ '@/views/exception/404'),
   '500': () => import(/* webpackChunkName: "error" */ '@/views/exception/500'),

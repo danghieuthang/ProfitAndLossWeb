@@ -28,7 +28,7 @@ var asyncRouterMap = [{
   meta: {
     title: 'menu.home'
   },
-  redirect: '/dashboard/workplace',
+  redirect: '/transaction/list',
   children: [// dashboard
   {
     path: '/dashboard',
@@ -38,8 +38,7 @@ var asyncRouterMap = [{
     meta: {
       title: 'menu.dashboard',
       keepAlive: true,
-      icon: _icons.bxAnaalyse,
-      permission: ['dashboard']
+      icon: _icons.bxAnaalyse
     },
     children: [{
       path: '/dashboard/analysis/:pageNo([1-9]\\d*)?',
@@ -51,8 +50,7 @@ var asyncRouterMap = [{
       },
       meta: {
         title: 'menu.dashboard.analysis',
-        keepAlive: false,
-        permission: ['dashboard']
+        keepAlive: false
       }
     }, {
       path: '/dashboard/workplace',
@@ -64,73 +62,57 @@ var asyncRouterMap = [{
       },
       meta: {
         title: 'menu.dashboard.workplace',
-        keepAlive: true,
-        permission: ['dashboard']
+        keepAlive: true
       }
     }]
-  }, // forms
+  }, // transaction
   {
-    path: '/form',
-    redirect: '/form/base-form',
+    path: '/transaction',
+    name: 'transaction',
     component: RouteView,
+    redirect: '/transaction/list',
     meta: {
-      title: 'Form',
-      icon: 'form',
-      permission: ['form']
+      title: 'Transactions',
+      icon: 'table'
     },
     children: [{
-      path: '/form/base-form',
-      name: 'BaseForm',
+      path: '/transaction/list',
+      name: 'Transaction',
+      hideChildrenInMenu: true,
       component: function component() {
         return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/form/basicForm'));
+          return _interopRequireWildcard(require('@/views/transaction/Transaction'));
         });
       },
       meta: {
-        title: 'Base form',
-        keepAlive: true,
-        permission: ['form']
+        title: 'Transactions',
+        keepAlive: true
       }
     }, {
-      path: '/form/step-form',
-      name: 'StepForm',
+      path: '/transaction/split',
+      name: 'Split Transaction',
+      hidden: true,
       component: function component() {
         return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/form/stepForm/StepForm'));
+          return _interopRequireWildcard(require('@/views/transaction/SplitTransaction'));
         });
       },
       meta: {
-        title: 'Step form',
-        keepAlive: true,
-        permission: ['form']
-      }
-    }, {
-      path: '/form/advanced-form',
-      name: 'AdvanceForm',
-      component: function component() {
-        return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/form/advancedForm/AdvancedForm'));
-        });
-      },
-      meta: {
-        title: 'Advance form',
-        keepAlive: true,
-        permission: ['form']
+        title: 'Split Transaction',
+        keepAlive: true
       }
     }]
-  }, // list
-  {
+  }, {
     path: '/list',
     name: 'list',
     component: RouteView,
-    redirect: '/list/table-list',
+    redirect: '/receipt/list',
     meta: {
-      title: 'Table list',
-      icon: 'table',
-      permission: ['table']
+      title: 'Receiptss',
+      icon: 'table'
     },
     children: [{
-      path: '/list/table-list/:pageNo([1-9]\\d*)?',
+      path: '/receipt/list',
       name: 'TableListWrapper',
       hideChildrenInMenu: true,
       component: function component() {
@@ -140,74 +122,34 @@ var asyncRouterMap = [{
       },
       meta: {
         title: 'Receipts',
-        keepAlive: true,
-        permission: ['table']
+        keepAlive: true
       }
     }, {
-      path: '/list/basic-list',
-      name: 'BasicList',
+      path: '/views/list',
+      name: 'Table',
+      hideChildrenInMenu: true,
       component: function component() {
         return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/list/BasicList'));
+          return _interopRequireWildcard(require('@/views/list/TableList'));
         });
       },
       meta: {
-        title: 'Basic List',
-        keepAlive: true,
-        permission: ['table']
+        title: 'Table List',
+        keepAlive: true
       }
-    }, {
-      path: '/list/search',
-      name: 'SearchList',
-      component: function component() {
-        return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/list/search/SearchLayout'));
-        });
-      },
-      redirect: '/list/search/article',
-      meta: {
-        title: 'Search List',
-        keepAlive: true,
-        permission: ['table']
-      },
-      children: [{
-        path: '/list/search/article',
-        name: 'SearchArticles',
-        component: function component() {
-          return Promise.resolve().then(function () {
-            return _interopRequireWildcard(require('../views/list/search/Article'));
-          });
-        },
-        meta: {
-          title: 'Search Articles',
-          permission: ['table']
-        }
-      }, {
-        path: '/list/search/project',
-        name: 'SearchProjects',
-        component: function component() {
-          return Promise.resolve().then(function () {
-            return _interopRequireWildcard(require('../views/list/search/Projects'));
-          });
-        },
-        meta: {
-          title: 'Search Projects',
-          permission: ['table']
-        }
-      }, {
-        path: '/list/search/application',
-        name: 'SearchApplications',
-        component: function component() {
-          return Promise.resolve().then(function () {
-            return _interopRequireWildcard(require('../views/list/search/Applications'));
-          });
-        },
-        meta: {
-          title: 'Search Applications',
-          permission: ['table']
-        }
-      }]
     }]
+  }, {
+    path: '/accounting-period',
+    name: 'accounting-period',
+    component: function component() {
+      return Promise.resolve().then(function () {
+        return _interopRequireWildcard(require('@/views/accountingperiod/AccountingPeriod'));
+      });
+    },
+    meta: {
+      title: 'Accoungting Period',
+      icon: 'table'
+    }
   }, // profile
   {
     path: '/profile',
@@ -215,9 +157,8 @@ var asyncRouterMap = [{
     component: RouteView,
     redirect: '/profile/basic',
     meta: {
-      title: 'profile',
-      icon: 'profile',
-      permission: ['profile']
+      title: 'Profile',
+      icon: 'profile'
     },
     children: [{
       path: '/profile/basic',
@@ -228,8 +169,7 @@ var asyncRouterMap = [{
         });
       },
       meta: {
-        title: 'Profile Basic',
-        permission: ['profile']
+        title: 'Profile Basic'
       }
     }, {
       path: '/profile/advanced',
@@ -240,8 +180,7 @@ var asyncRouterMap = [{
         });
       },
       meta: {
-        title: 'Profile Advanced',
-        permission: ['profile']
+        title: 'Profile Advanced'
       }
     }]
   }, // result
@@ -251,9 +190,8 @@ var asyncRouterMap = [{
     component: RouteView,
     redirect: '/result/success',
     meta: {
-      title: 'result',
-      icon: 'check-circle-o',
-      permission: ['result']
+      title: 'Result',
+      icon: 'check-circle-o'
     },
     children: [{
       path: '/result/success',
@@ -266,8 +204,7 @@ var asyncRouterMap = [{
       meta: {
         title: 'Result Success',
         keepAlive: false,
-        hiddenHeaderContent: true,
-        permission: ['result']
+        hiddenHeaderContent: true
       }
     }, {
       path: '/result/fail',
@@ -280,8 +217,7 @@ var asyncRouterMap = [{
       meta: {
         title: 'Result Fail',
         keepAlive: false,
-        hiddenHeaderContent: true,
-        permission: ['result']
+        hiddenHeaderContent: true
       }
     }]
   }, // Exception
@@ -291,7 +227,7 @@ var asyncRouterMap = [{
     component: RouteView,
     redirect: '/exception/403',
     meta: {
-      title: 'exception',
+      title: 'Exception',
       icon: 'warning',
       permission: ['exception']
     },
@@ -450,14 +386,14 @@ var asyncRouterMap = [{
     path: '/other',
     name: 'otherPage',
     component: PageView,
-    meta: { title: '其他组件', icon: 'slack', permission: [ 'dashboard' ] },
+    meta: { title: '其他组件', icon: 'slack',  },
     redirect: '/other/icon-selector',
     children: [
       {
         path: '/other/icon-selector',
         name: 'TestIconSelect',
         component: () => import('@/views/other/IconSelectorView'),
-        meta: { title: 'IconSelector', icon: 'tool', keepAlive: true, permission: [ 'dashboard' ] }
+        meta: { title: 'IconSelector', icon: 'tool', keepAlive: true,  }
       },
       {
         path: '/other/list',
