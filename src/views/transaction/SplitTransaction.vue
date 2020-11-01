@@ -1,5 +1,6 @@
 <template>
-  <page-header-wrapper>
+  <page-header-wrapper
+  >
     <div>
       <a-descriptions title="Transaction">
         <a-descriptions-item label="Code">{{ transaction.code }}</a-descriptions-item>
@@ -11,6 +12,7 @@
       Add Line
     </a-button>
     <a-table
+      :loading="loading"
       :columns="columns"
       :data-source="data"
       :pagination="{total: data.length,
@@ -19,7 +21,7 @@
       size="default"
       bordered>
       <template
-        v-for="col in ['category', 'description', 'balance']"
+        v-for="col in ['accountingPeriod', 'category', 'description', 'balance']"
         :slot="col"
         slot-scope="text, record"
       >
@@ -29,19 +31,38 @@
             v-if="record.editable && col == 'category'"
             @change="(value) => handleChangeCategory(value, record.key)"
             class="select-categories"
-            :default-value="categories[0].id"
+            :default-value="data[record.key]['transaction-category-id']"
           >
             <a-select-option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.name }}
             </a-select-option>
           </a-select>
+          <a-select
+            style="margin: -5px 0"
+            v-if="record.editable && col == 'accountingPeriod'"
+            @change="(value) => handleChangeAccountingPeriod(value, record.key)"
+            class="select-categories"
+            :default-value="data[record.key]['accounting-period-id']"
+          >
+            <a-select-option v-for="accountingPeriod in accountingPeriods" :key="accountingPeriod.id" :value="accountingPeriod.id">
+              {{ accountingPeriod.title }}
+            </a-select-option>
+          </a-select>
           <a-input
-            v-if="record.editable && col !== 'category'"
+            v-if="record.editable && col === 'description'"
             style="margin: -5px 0"
             :value="text"
             @change="e => handleChange(e.target.value, record.key, col)"
           />
-          <template v-else>
+          <a-input-number
+            v-if="record.editable && col == 'balance'"
+            style="margin: -5px 0"
+            :value="text"
+            :min="1"
+            :max="transaction.balance"
+            @change="(value) => handleChangeBalance(value, record.key)"
+          />
+          <template v-if="!record.editable">
             {{ text }}
           </template>
         </div>
@@ -56,7 +77,7 @@
             <a :disabled="editingKey !== ''" @click="() => edit(record.key)">Edit</a>
           </span>
           <span >
-            <a @click="() => onDelete(record.key)">
+            <a class="text-delete" @click="() => onDelete(record.key)">
               <!-- <a-icon type="delete" style="color:red" /> -->
               Delete
             </a>
@@ -74,19 +95,27 @@
 <script>
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
 const TransactionRepository = RepositoryFactory.get('transactions')
+const AccountingPeriodRepository = RepositoryFactory.get('accounting-periods')
 const TransactionCategoryRepository = RepositoryFactory.get('transaction-categories')
+const TransactionDetailRepository = RepositoryFactory.get('transaction-details')
 
 const columns = [
+   {
+    title: 'Accounting Period',
+    dataIndex: 'accountingPeriodName',
+    width: '20%',
+    scopedSlots: { customRender: 'accountingPeriod' }
+  },
   {
     title: 'Category',
     dataIndex: 'categoryName',
-    width: '25%',
+    width: '20%',
     scopedSlots: { customRender: 'category' }
   },
   {
     title: 'Description',
     dataIndex: 'description',
-    width: '45%',
+    width: '30%',
     scopedSlots: { customRender: 'description' }
   },
   {
@@ -96,7 +125,7 @@ const columns = [
     scopedSlots: { customRender: 'balance' }
   },
   {
-    title: 'operation',
+    title: 'Operation',
     dataIndex: 'operation',
     scopedSlots: { customRender: 'operation' }
   }
@@ -105,9 +134,12 @@ const data = []
 
   data.push({
       key: 0,
-      category: '',
+      'transaction-category-id': '',
       categoryName: '',
+      accountingPeriodName: '',
+      'accounting-period-id': '',
       description: '',
+      'transaction-id': '',
       balance: 0
   })
 
@@ -119,10 +151,20 @@ export default {
       columns,
       count: 1,
       editingKey: '',
-      categories: []
+      categories: [],
+      accountingPeriods: [],
+      loading: true
     }
   },
   methods: {
+    handleChangeBalance (value, key) {
+      const newData = [...this.data]
+      const target = newData.filter(item => key === item.key)[0]
+      if (target) {
+        target.balance = value
+        this.data = newData
+      }
+    },
     handleChange (value, key, column) {
       const newData = [...this.data]
       const target = newData.filter(item => key === item.key)[0]
@@ -135,8 +177,17 @@ export default {
       const newData = [...this.data]
       const target = newData.filter(item => key === item.key)[0]
       if (target) {
-        target.category = value
+        target['transaction-category-id'] = value
         target.categoryName = this.categories.filter(x => x.id === value)[0].name
+        this.data = newData
+      }
+    },
+    handleChangeAccountingPeriod (value, key) {
+      const newData = [...this.data]
+      const target = newData.filter(item => key === item.key)[0]
+      if (target) {
+        target['accounting-period-id'] = value
+        target.accountingPeriodName = this.accountingPeriods.filter(x => x.id === value)[0].title
         this.data = newData
       }
     },
@@ -157,21 +208,33 @@ export default {
         this.data = newData
       }
       this.editingKey = ''
+      if (this.getTotalBalance() > this.transaction.balance) {
+        this.$message.error('Balance out of range!')
+      }
     },
     onDelete (key) {
       const dataSource = [...this.data]
       this.data = dataSource.filter(item => item.key !== key)
     },
+    getTotalBalance () {
+      return this.data.reduce((a, b) => a + (b.balance || 0), 0)
+    },
+    getAvailableBalance () {
+       const totalBalance = this.getTotalBalance()
+       const rs = totalBalance === 'NaN' ? this.transaction.balance : this.transaction.balance - totalBalance
+       return rs < 0 ? 0 : rs
+    },
     handleAdd () {
       const { count, data } = this
-      const totalBalance = this.data.reduce((a, b) => a + (b.balance || 0), 0)
-      const balanceAvailable = this.transaction.balance - totalBalance
-      console.log(this.data[0].balance)
+      const balanceAvailable = this.getAvailableBalance()
       const newData = {
           key: count,
-          'category-id': this.categories[0].id,
+          'transaction-category-id': this.categories[0].id,
+          'accounting-period-id': this.accountingPeriods[0].id,
           categoryName: this.categories[0].name,
+          accountingPeriodName: this.accountingPeriods[0].title,
           description: '',
+          'transaction-id': this.transaction.id,
           balance: balanceAvailable
       }
       this.data = [...data, newData]
@@ -180,20 +243,42 @@ export default {
     loadData () {
       const id = this.$route.query.id
        TransactionRepository.searchById(id).then((res) => {
-        const rs = res.data.results
+        const rs = res.results
         this.transaction = rs
+        if (rs) {
+          this.data[0]['transaction-id'] = rs.id
+          this.data[0].balance = rs.balance
           TransactionCategoryRepository.getByTypeId(rs['transaction-type-id']).then((res) => {
-          const rs = res.data.results
-          this.categories = rs
-          this.data[0].category = rs[0].id
-          this.data[0].categoryName = rs[0].name
+            const rs = res.results
+            this.categories = rs
+            this.data[0]['transaction-category-id'] = rs[0].id
+            this.data[0].categoryName = rs[0].name
+         })
+          AccountingPeriodRepository.getAll().then((res) => {
+            const rs = res.results
+            this.accountingPeriods = rs
+            this.data[0]['accounting-period-id'] = rs[0].id
+            this.data[0].accountingPeriodName = rs[0].title
         })
+        this.loading = false
+        } else {
+            this.$message.error('Error in API')
+        }
       })
     },
     submitSplit () {
        const totalBalance = this.data.reduce((a, b) => a + (b.balance || 0), 0)
        if (totalBalance !== this.transaction.balance) {
          this.$message.error('Total balance not equal!')
+       } else {
+         TransactionDetailRepository.create(this.data).then((res) => {
+           var result = res
+           if (result.success) {
+             this.$message.success('Split transaction successfull')
+           } else {
+             this.$message.error('Split fail')
+           }
+         })
        }
     }
   },
@@ -210,6 +295,9 @@ export default {
 }
 .select-categories{
   width: 100%;
+}
+.editable-add-btn{
+  margin-bottom: 10px;
 }
 .center{
   text-align: center;

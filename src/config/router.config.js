@@ -59,6 +59,13 @@ export const asyncRouterMap = [
             hidden: true,
             component: () => import('@/views/transaction/SplitTransaction'),
             meta: { title: 'Split Transaction', keepAlive: true }
+          },
+          {
+            path: '/transaction/detail',
+            name: 'Detail Transaction',
+            hidden: true,
+            component: () => import('@/views/transaction/TransactionDetail'),
+            meta: { title: 'Detail Transaction', keepAlive: true }
           }
         ]
       },

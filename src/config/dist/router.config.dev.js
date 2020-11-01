@@ -101,6 +101,19 @@ var asyncRouterMap = [{
         title: 'Split Transaction',
         keepAlive: true
       }
+    }, {
+      path: '/transaction/detail',
+      name: 'Detail Transaction',
+      hidden: true,
+      component: function component() {
+        return Promise.resolve().then(function () {
+          return _interopRequireWildcard(require('@/views/transaction/TransactionDetail'));
+        });
+      },
+      meta: {
+        title: 'Detail Transaction',
+        keepAlive: true
+      }
     }]
   }, {
     path: '/list',

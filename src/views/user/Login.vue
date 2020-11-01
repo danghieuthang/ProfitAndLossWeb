@@ -14,7 +14,7 @@
             <a-input
               size="large"
               type="text"
-              placeholder="User name: admin"
+              placeholder="User name"
               v-decorator="[
                 'username',
                 { rules: [{ required: true, message: 'User name must be required!' }], validateTrigger: 'change' },
@@ -27,7 +27,7 @@
           <a-form-item>
             <a-input-password
               size="large"
-              placeholder="Password: admin or ant.design"
+              placeholder="Password"
               v-decorator="[
                 'password',
                 { rules: [{ required: true, message: 'Password must be required' }], validateTrigger: 'blur' },
@@ -81,8 +81,11 @@ import storage from 'store'
 import { timeFix } from '@/utils/util'
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
+import config from '@/config/firebase.config'
+import FireBase from 'firebase'
 const UserRepository = RepositoryFactory.get('users')
 
+FireBase.initializeApp(config)
 export default {
   components: {},
   data () {
@@ -117,22 +120,42 @@ export default {
 
       validateFields(validateFieldsKey, { force: true }, (err, values) => {
         if (!err) {
-          console.log('login form', values)
           const user = {
             username: values.username,
-            password: values.password
+            password: values.password,
+            'firebase-token': '',
+            'request-type': 'default'
           }
-
-          UserRepository.login(user)
-            .then((res) => {
-              var data = res.data
-              if (data.success) this.loginSuccess(data)
-              if (!data.success) this.isLoginError = true
-            })
-            .catch((err) => this.requestFailed(err))
-            .finally(() => {
-              state.loginBtn = false
-            })
+          // UserRepository.login(user)
+          //           .then((res) => {
+          //             if (res.success) this.loginSuccess(res)
+          //             if (!res.success) this.isLoginError = true
+          //           })
+          //           .catch((err) => this.requestFailed(err))
+          //           .finally(() => {
+          //             state.loginBtn = false
+          //           })
+          FireBase.auth().signInWithEmailAndPassword(user.username, user.password).then((res) => {
+            console.log(res)
+            if (res) {
+              FireBase.auth().currentUser.getIdToken(true).then((token) => {
+                  user['firebase-token'] = token
+                  user['request-type'] = 'firebase'
+                  UserRepository.login(user).then((res) => {
+                      var data = res
+                      if (data.success) this.loginSuccess(data)
+                      if (!data.success) this.isLoginError = true
+                    })
+                    .catch((err) => this.requestFailed(err))
+                    .finally(() => {
+                      state.loginBtn = false
+                    })
+              })
+            }
+          }).catch((error) => {
+            this.$message.error(error.message)
+            state.loginBtn = false
+          })
         } else {
           setTimeout(() => {
             state.loginBtn = false
@@ -141,8 +164,9 @@ export default {
       })
     },
     loginSuccess (res) {
-      console.log('success: ' + res)
-      storage.set(ACCESS_TOKEN, res.results['access-token'], 7 * 24 * 60 * 60 * 1000)
+      storage.set(ACCESS_TOKEN, res.results['access-token'], 30 * 60)
+      localStorage.user = { name: res.results.name, 'ACCESS-TOKEN': res.results['access-token'] }
+      storage.set()
       this.$router.push({ path: '/' })
       setTimeout(() => {
         this.$notification.success({

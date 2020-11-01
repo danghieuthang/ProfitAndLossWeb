@@ -20,6 +20,7 @@ import './core/lazy_use' // use lazy load components
 import './permission' // permission control
 import './utils/filter' // global filter
 import './global.less' // global style
+import VueFire from 'vuefire'
 
 Vue.config.productionTip = false
 
@@ -36,6 +37,7 @@ new Vue({
   router,
   store,
   i18n,
+  VueFire,
   // init localstorage, vuex
   created: bootstrap,
   render: h => h(App)

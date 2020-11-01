@@ -9,16 +9,9 @@ var _Repository = _interopRequireDefault(require("./Repository"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-var resource = '/evidences';
+var resource = '/transaction-details';
 var _default = {
-  addEvidence: function addEvidence(formData) {
-    return _Repository["default"].post("".concat(resource), formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-  },
-  add: function add(data) {
+  create: function create(data) {
     return _Repository["default"].post("".concat(resource), data);
   }
 };

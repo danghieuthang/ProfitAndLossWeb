@@ -1,0 +1,264 @@
+<template>
+  <a-modal
+    :visible="visible"
+    title="Add new transaction"
+    okText="Add"
+    @cancel="
+      () => {
+        $emit('cancel')
+      }
+    "
+    @ok="createTransaction"
+  >
+    <a-form layout="vertical" :form="form">
+      <a-form-item label="Store">
+        <a-select v-model="transaction['store-id']" de>
+          <!-- <a-select-option>Please select store: </a-select-option> -->
+          <a-select-option v-for="store in stores" :key="store.id">
+            {{ store.code }} - {{ store.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Note Message">
+        <a-input
+          v-model="transaction['note-message']"
+          type="textarea"
+          v-decorator="[
+            'notemessage',
+            {
+              rules: [{ required: true, message: 'Please input the Note message of receipt!' }],
+            },
+          ]"
+        />
+      </a-form-item>
+      <a-form-item label="Balance">
+        <a-input
+          v-model="transaction.balance"
+          type="number"
+          v-decorator="[
+            'price',
+            {
+              initValue: { number: 0 },
+              rules: [{ validator: checkBalance }],
+            },
+          ]"
+        />
+      </a-form-item>
+      <a-form-item label="Supplier">
+        <a-select v-model="transaction['supplier-id']" de>
+          <a-select-option v-for="supplier in suppliers" :key="supplier.id" :value="supplier.id">
+            {{ supplier.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Transaction Type">
+        <a-select v-model="transaction['transaction-type-id']" de>
+          <a-select-option v-for="type in types" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <h1 class="receipt-form"></h1>
+      <a-form-item label="Receipt Description">
+        <a-input v-model="transaction.receipt.description" type="textarea" />
+      </a-form-item>
+      <a-form-item label="Upload Evidence" extra="">
+        <a-input type="file" @change="onImageChange" multiple />
+        <div id="preview">
+          <img v-for="image in imageUrl" :key="image" :src="image" />
+        </div>
+      </a-form-item>
+    </a-form>
+  </a-modal>
+</template>
+
+<script>
+import { RepositoryFactory } from '@/repositories/RepositoryFactory'
+import config from '@/config/firebase.config'
+import FireBase from 'firebase'
+const StoreRepository = RepositoryFactory.get('stores')
+const SupplierRepository = RepositoryFactory.get('suppliers')
+const TransactionTypeRepository = RepositoryFactory.get('transaction-types')
+const TransactionRepository = RepositoryFactory.get('transactions')
+const EvidenceRepository = RepositoryFactory.get('evidences')
+
+FireBase.initializeApp(config)
+export default {
+  props: {
+    visible: {
+      type: Boolean,
+      required: true
+    },
+    loading: {
+      type: Boolean,
+      default: () => false
+    },
+    model: {
+      type: Object,
+      default: () => null
+    }
+  },
+  data () {
+    this.formLayout = {
+      labelCol: {
+        xs: { span: 24 },
+        sm: { span: 7 }
+      },
+      wrapperCol: {
+        xs: { span: 24 },
+        sm: { span: 13 }
+      }
+    }
+    return {
+      form: this.$form.createForm(this),
+      stores: [],
+      suppliers: [],
+      types: [],
+      transaction: {
+        'store-id': '',
+        'note-message': '',
+        balance: 0,
+        'transaction-type-id': '',
+        'supplier-id': '',
+        receipt: {
+          description: ''
+        }
+      },
+      file: null,
+      imageUrl: null
+    }
+  },
+  mounted () {
+    StoreRepository.get().then((res) => {
+      const rs = res.results
+      this.stores = rs
+      this.transaction['store-id'] = rs[0].id
+    })
+    SupplierRepository.get().then((res) => {
+      const rs = res.results
+      this.suppliers = rs
+      // this.transaction['supplier-id'] = rs[0].id
+    })
+    TransactionTypeRepository.get().then((res) => {
+      const rs = res.results
+      this.types = rs
+      this.transaction['transaction-type-id'] = rs[0].id
+    })
+  },
+  methods: {
+    checkBalance (rule, value, callback) {
+      if (this.transaction.balance > 0) {
+        callback()
+        return
+      }
+      // eslint-disable-next-line standard/no-callback-literal
+      callback('Balance must greater than zero!')
+    },
+    createTransaction () {
+      this.form.validateFields((err) => {
+        if (!err) {
+          TransactionRepository.create(this.transaction).then((res) => {
+            if (res.success) {
+              this.createEvidence(res.results['receipt-id'])
+              this.$emit('addTransaction', res.results)
+            } else {
+              this.$message.error(`Add transaction faild: ${res.results}`)
+            }
+          })
+        }
+      })
+      // console.log(this.file)
+    },
+    uploadFirebase (image, id) {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const storageRef = FireBase.storage().ref(`${image.name}`).put(image)
+          storageRef.on(
+            `state_changed`,
+            (snapshot) => {
+              this.uploadValue = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            },
+            (error) => {
+              console.log(error.message)
+            },
+            () => {
+              this.uploadValue = 100
+              storageRef.snapshot.ref.getDownloadURL().then((url) => {
+                resolve({
+                  name: image.name,
+                  'img-url': url,
+                  'receipt-id': id
+                })
+              })
+            }
+          )
+        })
+      })
+    },
+    async createEvidence (id) {
+      const evidences = []
+      for (var i = 0; i < this.file.length; i++) {
+        const image = this.file[i]
+        const newEvidence = await this.uploadFirebase(image, id)
+        evidences.push(newEvidence)
+      }
+      //  this.file.forEach(x => {
+      //    evidences.push(this.uploadFirebase(x, id))
+      //  })
+      EvidenceRepository.add(evidences).then((res) => {
+          if (res.success) {
+            console.log('add evidence success')
+          } else {
+            console.log('add evidence error')
+          }
+      })
+    },
+    onImageChange (e) {
+      const files = e.target.files || e.dataTransfer.files
+      if (!files.length) {
+        return
+      }
+      this.file = files
+      this.imageUrl = []
+      files.forEach((file) => this.imageUrl.push(URL.createObjectURL(file)))
+      // this.imageUrl = URL.createObjectURL(this.file)
+      this.previewVisible = true
+    }
+  }
+}
+</script>
+<style>
+/* you can make up upload button and sample style by using stylesheets */
+.ant-upload-select-picture-card i {
+  font-size: 32px;
+  color: #999;
+}
+
+.ant-upload-select-picture-card .ant-upload-text {
+  margin-top: 8px;
+  color: #666;
+}
+.ant-upload-select-picture-card i {
+  font-size: 32px;
+  color: #999;
+}
+
+.ant-upload-select-picture-card .ant-upload-text {
+  margin-top: 8px;
+  color: #666;
+}
+.receipt-form {
+  border-top: 2px ridge;
+}
+#preview {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#preview img {
+  margin: 2px;
+  max-width: 100px;
+  max-height: 100px;
+}
+</style>

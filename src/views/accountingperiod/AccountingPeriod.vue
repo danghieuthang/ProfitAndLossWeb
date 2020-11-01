@@ -164,7 +164,7 @@ export default {
         'page-size': this.pagination.pageSize
       }
       AccountingPeriodRepository.search(params).then((res) => {
-        const rs = res.data.results
+        const rs = res.results
         rs.data.forEach(element => {
             element['start-date'] = new Date(element['start-date']).toDateString()
             element['close-date'] = new Date(element['close-date']).toDateString()

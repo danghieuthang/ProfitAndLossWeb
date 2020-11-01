@@ -1,6 +1,6 @@
 <template>
   <page-header-wrapper>
-    <a-button class="editable-add-btn" @click="addTransaction"> Add </a-button>
+    <a-button class="editable-add-btn" @click="addNewTransaction"> Add </a-button>
     <a-table
       bordered
       :data-source="dataSource"
@@ -34,13 +34,26 @@
         <template v-if="text.status == 2">
           <a-button type="primary" @click="onSplit(record.id)">Split</a-button>
         </template>
+        <template v-if="text.status == 3">
+          {{ getStatus(text.status) }}
+        </template>
       </template>
       <p slot="expandedRowRender" slot-scope="record" style="margin: 0">Note message: {{ record['note-message'] }}</p>
     </a-table>
+    <template v-if="addTransaction">
+      <create-transaction
+        ref="createtransaction"
+        :visible="true"
+        @cancel="handleCancel"
+        @addTransaction="addedTransaction"
+      />
+    </template>
   </page-header-wrapper>
 </template>
 <script>
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
+import CreateTransaction from './modules/CreateTransaction'
+
 const TransactionRepository = RepositoryFactory.get('transactions')
 const EditableCell = {
   template: `
@@ -93,10 +106,12 @@ const EditableCell = {
 }
 export default {
   components: {
-    EditableCell
+    EditableCell,
+    CreateTransaction
   },
   data () {
     return {
+      addTransaction: false,
       dataSource: [
         // {
         //   id: '1',
@@ -188,17 +203,6 @@ export default {
       const dataSource = [...this.dataSource]
       this.dataSource = dataSource.filter((item) => item.key !== key)
     },
-    handleAdd () {
-      const { count, dataSource } = this
-      const newData = {
-        key: count,
-        name: `Edward King ${count}`,
-        age: 32,
-        address: `London, Park Lane no. ${count}`
-      }
-      this.dataSource = [...dataSource, newData]
-      this.count = count + 1
-    },
     loadData () {
       this.loading = true
       const params = {
@@ -209,7 +213,7 @@ export default {
         'sort-by': 'asc'
       }
       TransactionRepository.search(params).then((res) => {
-        const rs = res.data.results
+        const rs = res.results
         this.pagination.total = rs['total-count']
         this.loading = false
         this.dataSource = rs.data
@@ -219,7 +223,7 @@ export default {
       const formData = new FormData()
       formData.append('id', id)
       TransactionRepository.approval(formData).then((res) => {
-        const rs = res.data
+        const rs = res
         if (rs.success) {
           this.$message.success(`Approval transaction - ${rs.results.code} successfully`)
           this.loadData()
@@ -232,7 +236,7 @@ export default {
       const formData = new FormData()
       formData.append('id', id)
       TransactionRepository.reject(formData).then((res) => {
-        const rs = res.data
+        const rs = res
         if (rs.success) {
           this.$message.success(`Approval transaction - ${rs.results.code} successfully`)
           this.loadData()
@@ -249,6 +253,24 @@ export default {
     },
     onSplit (id) {
       this.$router.push({ path: '/transaction/split', query: { id: id } })
+    },
+    addNewTransaction () {
+      this.addTransaction = true
+    },
+    handleCancel () {
+      this.addTransaction = false
+    },
+    addedTransaction (transaction) {
+      this.addTransaction = false
+      this.$message.success(`Create transaction ${transaction.code} successfull`)
+      this.loadData()
+    },
+    getStatus (status) {
+      console.log(status)
+      switch (status) {
+          case 3: return 'Rejected'
+          case 5: return 'Splited'
+      }
     }
   },
   mounted () {

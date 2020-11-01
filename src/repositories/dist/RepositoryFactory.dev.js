@@ -23,6 +23,10 @@ var _accountingPeriodRepository = _interopRequireDefault(require("./accountingPe
 
 var _transactionCategoryRepository = _interopRequireDefault(require("./transactionCategoryRepository"));
 
+var _transactionDetailRepository = _interopRequireDefault(require("./transactionDetailRepository"));
+
+var _transactionTypeRepository = _interopRequireDefault(require("./transactionTypeRepository"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var repositories = {
@@ -34,7 +38,9 @@ var repositories = {
   evidences: _evidenceRepository["default"],
   transactions: _transactionRepository["default"],
   'accounting-periods': _accountingPeriodRepository["default"],
-  'transaction-categories': _transactionCategoryRepository["default"]
+  'transaction-categories': _transactionCategoryRepository["default"],
+  'transaction-details': _transactionDetailRepository["default"],
+  'transaction-types': _transactionTypeRepository["default"]
 };
 var RepositoryFactory = {
   get: function get(name) {

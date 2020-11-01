@@ -4,6 +4,9 @@ export default {
     search (params) {
         return Repository.get(`${resource}/search`, { params: params })
     },
+    getAll () {
+        return Repository.get(`${resource}`)
+    },
     searchById (id) {
         return Repository.get(`${resource}/${id}`)
     },

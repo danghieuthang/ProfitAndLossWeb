@@ -85,7 +85,7 @@ export default {
       this.form.validateFields((err) => {
         if (!err) {
           AccountingPeriodRepository.create(this.accountingPeriod).then((res) => {
-              this.$emit('create', res.data)
+              this.$emit('create', res)
           })
         } else {
         }

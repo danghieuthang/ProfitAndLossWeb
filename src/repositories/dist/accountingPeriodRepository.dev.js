@@ -16,6 +16,9 @@ var _default = {
       params: params
     });
   },
+  getAll: function getAll() {
+    return _Repository["default"].get("".concat(resource));
+  },
   searchById: function searchById(id) {
     return _Repository["default"].get("".concat(resource, "/").concat(id));
   },

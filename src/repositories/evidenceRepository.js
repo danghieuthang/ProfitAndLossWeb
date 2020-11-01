@@ -7,5 +7,8 @@ export default {
                 'Content-Type': 'multipart/form-data'
             }
         })
+    },
+    add (data) {
+        return Repository.post(`${resource}`, data)
     }
 }

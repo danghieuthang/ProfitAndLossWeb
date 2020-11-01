@@ -63,7 +63,7 @@ export default {
   },
   mounted () {
       AccountingPeriodRepository.searchById(this.selectId).then((res) => {
-             const data = res.data.results
+             const data = res.results
              this.accountingPeriod = data
              this.form.getFieldDecorator('title', { initialValue: data.title })
              this.form.getFieldDecorator('description', { initialValue: data.description })
@@ -75,7 +75,7 @@ export default {
       this.form.validateFields((err) => {
         if (!err) {
           AccountingPeriodRepository.update(this.accountingPeriod).then((res) => {
-              this.$emit('update', res.data)
+              this.$emit('update', res)
           })
         } else {
         }
