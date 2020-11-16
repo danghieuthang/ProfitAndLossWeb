@@ -1,4 +1,5 @@
-export default {
+import firebase from 'firebase'
+const config = {
   apiKey: 'AIzaSyB0bAvWYtuR-EP0YiultKtT2yhdW40HgMw',
   authDomain: 'swdk13.firebaseapp.com',
   databaseURL: 'https://swdk13.firebaseio.com',
@@ -8,3 +9,4 @@ export default {
   appId: '1:281352713221:web:1c2a5d1388131ccb70986c',
   measurementId: 'G-498BY3CXM2'
 }
+export default !firebase.apps.length ? firebase.initializeApp(config) : firebase.app()

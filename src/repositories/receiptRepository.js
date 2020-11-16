@@ -6,5 +6,8 @@ export default {
     },
     createReceipt (data) {
         return Repository.post(`${resource}`, data)
+    },
+    getEvidenceByTransactionId (id) {
+        return Repository.get(`${resource}/search/${id}`)
     }
 }

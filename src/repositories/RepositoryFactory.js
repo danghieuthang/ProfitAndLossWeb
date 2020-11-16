@@ -9,6 +9,7 @@ import AccountingPeriodRepository from './accountingPeriodRepository'
 import TransactionCategoryRepository from './transactionCategoryRepository'
 import TransactionDetailRepository from './transactionDetailRepository'
 import TransactionTypeRepository from './transactionTypeRepository'
+import DashboardRepository from './dashboardRepository'
 
 const repositories = {
     receipts: ReceiptRepository,
@@ -21,7 +22,8 @@ const repositories = {
     'accounting-periods': AccountingPeriodRepository,
     'transaction-categories': TransactionCategoryRepository,
     'transaction-details': TransactionDetailRepository,
-    'transaction-types': TransactionTypeRepository
+    'transaction-types': TransactionTypeRepository,
+    'dashboards': DashboardRepository
 }
 
 export const RepositoryFactory = {

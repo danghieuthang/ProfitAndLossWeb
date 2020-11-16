@@ -9,10 +9,16 @@ var _Repository = _interopRequireDefault(require("./Repository"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-var resource = '/transaction-details';
+var resource = '/transactions';
 var _default = {
   create: function create(data) {
     return _Repository["default"].post("".concat(resource), data);
+  },
+  update: function update(data) {
+    return _Repository["default"].put("".concat(resource), data);
+  },
+  searchByTransactionId: function searchByTransactionId(id) {
+    return _Repository["default"].get("".concat(resource, "/receipt/").concat(id));
   }
 };
 exports["default"] = _default;

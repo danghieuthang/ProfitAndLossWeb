@@ -1,8 +1,47 @@
 <template>
   <div class="main">
     <a-form id="formLogin" class="user-layout-login" ref="formLogin" :form="form" @submit="handleSubmit">
-      <a-tabs :activeKey="customActiveKey" :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }">
-        <a-tab-pane key="tab1" tab="Login">
+      <a-tabs
+        :activeKey="customActiveKey"
+        :tabBarStyle="{ textAlign: 'center', borderBottom: 'unset' }"
+        @change="handleTabClick"
+      >
+        <a-tab-pane key="tab1" tab="Login App">
+          <a-alert
+            v-if="isLoginError"
+            type="error"
+            showIcon
+            style="margin-bottom: 24px"
+            message="User name or password are incorrect!"
+          />
+          <a-form-item>
+            <a-input
+              size="large"
+              type="text"
+              placeholder="User name"
+              v-decorator="[
+                'username',
+                { rules: [{ required: true, message: 'User name must be required!' }], validateTrigger: 'change' },
+              ]"
+            >
+              <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }" />
+            </a-input>
+          </a-form-item>
+
+          <a-form-item>
+            <a-input-password
+              size="large"
+              placeholder="Password"
+              v-decorator="[
+                'password',
+                { rules: [{ required: true, message: 'Password must be required' }], validateTrigger: 'blur' },
+              ]"
+            >
+              <a-icon slot="prefix" type="lock" :style="{ color: 'rgba(0,0,0,.25)' }" />
+            </a-input-password>
+          </a-form-item>
+        </a-tab-pane>
+        <a-tab-pane key="tab2" tab="Login Firebase">
           <a-alert
             v-if="isLoginError"
             type="error"
@@ -81,11 +120,9 @@ import storage from 'store'
 import { timeFix } from '@/utils/util'
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
-import config from '@/config/firebase.config'
-import FireBase from 'firebase'
-const UserRepository = RepositoryFactory.get('users')
+import firebase from '@/config/firebase.config'
 
-FireBase.initializeApp(config)
+const UserRepository = RepositoryFactory.get('users')
 export default {
   components: {},
   data () {
@@ -105,7 +142,7 @@ export default {
 
     handleTabClick (key) {
       this.customActiveKey = key
-      // this.form.resetFields()
+      this.form.resetFields()
     },
     handleSubmit (e) {
       e.preventDefault()
@@ -126,36 +163,47 @@ export default {
             'firebase-token': '',
             'request-type': 'default'
           }
-          // UserRepository.login(user)
-          //           .then((res) => {
-          //             if (res.success) this.loginSuccess(res)
-          //             if (!res.success) this.isLoginError = true
-          //           })
-          //           .catch((err) => this.requestFailed(err))
-          //           .finally(() => {
-          //             state.loginBtn = false
-          //           })
-          FireBase.auth().signInWithEmailAndPassword(user.username, user.password).then((res) => {
-            console.log(res)
-            if (res) {
-              FireBase.auth().currentUser.getIdToken(true).then((token) => {
-                  user['firebase-token'] = token
-                  user['request-type'] = 'firebase'
-                  UserRepository.login(user).then((res) => {
-                      var data = res
-                      if (data.success) this.loginSuccess(data)
-                      if (!data.success) this.isLoginError = true
-                    })
-                    .catch((err) => this.requestFailed(err))
-                    .finally(() => {
-                      state.loginBtn = false
-                    })
+          if (this.customActiveKey === 'tab1') {
+            UserRepository.login(user)
+              .then((res) => {
+                if (res.success) this.loginSuccess(res)
+                if (!res.success) this.isLoginError = true
               })
-            }
-          }).catch((error) => {
-            this.$message.error(error.message)
-            state.loginBtn = false
-          })
+              .catch((err) => this.requestFailed(err))
+              .finally(() => {
+                state.loginBtn = false
+              })
+          } else {
+            firebase
+            .auth()
+            .signInWithEmailAndPassword(user.username, user.password)
+            .then((res) => {
+              console.log(res)
+              if (res) {
+                firebase
+                  .auth()
+                  .currentUser.getIdToken(true)
+                  .then((token) => {
+                    user['firebase-token'] = token
+                    user['request-type'] = 'firebase'
+                    UserRepository.login(user)
+                      .then((res) => {
+                        var data = res
+                        if (data.success) this.loginSuccess(data)
+                        if (!data.success) this.isLoginError = true
+                      })
+                      .catch((err) => this.requestFailed(err))
+                      .finally(() => {
+                        state.loginBtn = false
+                      })
+                  })
+              }
+            })
+            .catch((error) => {
+              this.$message.error(error.message)
+              state.loginBtn = false
+            })
+          }
         } else {
           setTimeout(() => {
             state.loginBtn = false
@@ -165,7 +213,7 @@ export default {
     },
     loginSuccess (res) {
       storage.set(ACCESS_TOKEN, res.results['access-token'], 30 * 60)
-      localStorage.user = { name: res.results.name, 'ACCESS-TOKEN': res.results['access-token'] }
+      localStorage.user = res.results
       storage.set()
       this.$router.push({ path: '/' })
       setTimeout(() => {

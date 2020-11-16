@@ -27,7 +27,7 @@
     <template v-slot:footerRender>
       <global-footer />
     </template>
-    <router-view />
+    <router-view :key="$route.fullPath"></router-view>
   </pro-layout>
 </template>
 
@@ -42,7 +42,7 @@ import RightContent from '@/components/GlobalHeader/RightContent'
 import GlobalFooter from '@/components/GlobalFooter'
 import Ads from '@/components/Other/CarbonAds'
 import LogoSvg from '../assets/logo.svg?inline'
-
+import FirebaseService from '@/services/FireBaseService'
 export default {
   name: 'BasicLayout',
   components: {
@@ -50,8 +50,7 @@ export default {
     RightContent,
     GlobalFooter,
     LogoSvg,
-    Ads
-  },
+    Ads },
   data () {
     return {
       // preview.pro.antdv.com only use.
@@ -104,6 +103,11 @@ export default {
     })
   },
   mounted () {
+    const met = this.showNotification
+    FirebaseService.getNews().on('value', function (snapshot) {
+        met(snapshot.val())
+    })
+
     const userAgent = navigator.userAgent
     if (userAgent.indexOf('Edge') > -1) {
       this.$nextTick(() => {
@@ -121,6 +125,33 @@ export default {
     }
   },
   methods: {
+    showNotification (id) {
+      const key = `open${Date.now()}`
+       this.$notification.open({
+        message: 'Notification',
+        description:
+          'A new transaction created, please check',
+        btn: h => {
+          return h(
+            'a-button',
+            {
+              props: {
+                type: 'primary',
+                size: 'small'
+              },
+              on: {
+                click: () => {
+                  this.$notification.close(key)
+                  this.$router.push({ path: id })
+                  }
+              }
+            },
+            'Detail'
+          )
+        },
+        key
+      })
+    },
     i18nRender,
     handleMediaQuery (val) {
       this.query = val

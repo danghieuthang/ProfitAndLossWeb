@@ -20,10 +20,10 @@
             </a-col>
             <template v-if="advanced">
               <a-col :md="8" :sm="24">
-                <a-form-item label="Store">
-                  <a-select v-model="search['store-id']">
-                    <a-select-option v-for="store in stores" :key="store.id" :value="store.id">
-                      {{ store.name }}
+                <a-form-item label="Status">
+                  <a-select v-model="search.status">
+                    <a-select-option v-for="st in transactionStatus" :key="st.id" :value="st.id">
+                      {{ st.name }}
                     </a-select-option>
                   </a-select>
                 </a-form-item>
@@ -46,15 +46,6 @@
                     :format="dateFormat"
                     @change="selectEndStart"
                   />
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="24">
-                <a-form-item label="Status">
-                  <a-select v-model="search.status">
-                    <a-select-option v-for="st in transactionStatus" :key="st.id" :value="st.id">
-                      {{ st.name }}
-                    </a-select-option>
-                  </a-select>
                 </a-form-item>
               </a-col>
             </template>
@@ -131,7 +122,7 @@
             <a-descriptions-item label="Modifed Date">{{ record['modified-date'] }}</a-descriptions-item>
             <a-descriptions-item label="Note-message">{{ record['note-message'] }}</a-descriptions-item>
           </a-descriptions>
-          <a @click="viewDetail(record.store.brand.code, record.store.code, record.id)">Detail</a>
+          <a @click="viewDetail(record.store.brand.code, record.store.id, record.id)">Detail</a>
         </template>
       </a-table>
       <template v-if="addTransaction">
@@ -150,7 +141,6 @@ import { RepositoryFactory } from '@/repositories/RepositoryFactory'
 import CreateTransaction from './modules/CreateTransaction'
 const TransactionTypeRepository = RepositoryFactory.get('transaction-types')
 const TransactionRepository = RepositoryFactory.get('transactions')
-const StoreRepository = RepositoryFactory.get('stores')
 
 const EditableCell = {
   template: `
@@ -256,7 +246,6 @@ export default {
       dateFormat: 'YYYY/MM/DD',
       addTransaction: false,
       types: [],
-      stores: [],
       transactionStatus,
       search: {
         'from-date': null,
@@ -298,6 +287,7 @@ export default {
       return mm + '/' + dd + '/' + yyyy
     },
     loadData () {
+      this.search['store-id'] = this.$route.params.store
       this.loading = true
       this.search.page = this.pagination.current
       this.search['page-size'] = this.pagination.pageSize
@@ -346,10 +336,10 @@ export default {
       this.loadData()
     },
     onSplit (brandCode, storeCode, id) {
-      this.$router.push({ path: `/transactions/${brandCode}/${storeCode}/split/${id}` })
+      this.$router.push({ path: `${this.$route.path}/transactions/${id}/split` })
     },
     viewDetail (brandCode, storeCode, id) {
-      this.$router.push({ path: `/transactions/${brandCode}/${storeCode}/${id}` })
+      this.$router.push({ path: `${this.$route.path}/transactions/${id}` })
     },
     addNewTransaction () {
       this.addTransaction = true
@@ -378,12 +368,6 @@ export default {
       TransactionTypeRepository.get().then((res) => {
         const rs = res.results
         this.types = rs
-      })
-    },
-    loadStore () {
-      StoreRepository.get().then((res) => {
-        const rs = res.results
-        this.stores = rs
       })
     },
     disabledStartDate (startValue) {
@@ -421,7 +405,6 @@ export default {
   mounted () {
     this.loadData()
     this.loadTransactionType()
-    this.loadStore()
   }
 }
 </script>

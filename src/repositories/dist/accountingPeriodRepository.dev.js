@@ -19,6 +19,9 @@ var _default = {
   getAll: function getAll() {
     return _Repository["default"].get("".concat(resource));
   },
+  getStillOpen: function getStillOpen() {
+    return _Repository["default"].get("".concat(resource, "/still-open"));
+  },
   searchById: function searchById(id) {
     return _Repository["default"].get("".concat(resource, "/").concat(id));
   },
@@ -29,7 +32,7 @@ var _default = {
     return _Repository["default"].put("".concat(resource), data);
   },
   "delete": function _delete(id) {
-    return _Repository["default"].put("".concat(resource, "/delete"), id);
+    return _Repository["default"]["delete"]("".concat(resource, "/").concat(id));
   }
 };
 exports["default"] = _default;

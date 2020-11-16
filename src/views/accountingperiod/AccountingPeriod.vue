@@ -1,62 +1,65 @@
 <template>
   <page-header-wrapper>
-    <a-button type="primary" class="editable-add-btn" @click="addAccountingPeriod"> Add </a-button>
-    <div class="center">
-      <a-form layout="inline" justify="center" class="form-search">
-        <a-form-item label="Start Date">
-          <a-date-picker :format="dateFormat" @change="selectDateStart"/>
-        </a-form-item>
-        <a-form-item label="Close Date">
-          <a-date-picker :format="dateFormat" @change="selectDateClose"/>
-        </a-form-item>
-        <a-form-item>
-          <a-button type="primary" @click="loadData">
-            Search
-          </a-button>
-        </a-form-item>
-      </a-form>
-    </div>
+    <a-card :bordered="false">
+      <a-button type="primary" class="editable-add-btn" @click="addAccountingPeriod"> Add </a-button>
+      <div class="center">
+        <a-form layout="inline" justify="center" class="form-search">
+          <a-form-item label="Start Date">
+            <a-date-picker :format="dateFormat" @change="selectDateStart"/>
+          </a-form-item>
+          <a-form-item label="Close Date">
+            <a-date-picker :format="dateFormat" @change="selectDateClose"/>
+          </a-form-item>
+          <a-form-item>
+            <a-button type="primary" @click="loadData">
+              Search
+            </a-button>
+          </a-form-item>
+        </a-form>
+      </div>
 
-    <br />
-    <br />
-    <a-table
-      bordered
-      :data-source="dataSource"
-      :columns="columns"
-      :row-key="(record) => record.id"
-      :pagination="pagination"
-      :loading="loading"
-      @change="handleTableChange"
-    >
-      <td slot="no" slot-scope="text, record, index">{{ index + 1 }}</td>
-      <template slot="operation" slot-scope="text, record">
-        <template>
-          <a-button type="primary" @click="()=> onUpdate(record.id)">Update</a-button>
+      <br />
+      <br />
+      <a-table
+        bordered
+        :data-source="dataSource"
+        :columns="columns"
+        :row-key="(record) => record.id"
+        :pagination="pagination"
+        :loading="loading"
+        @change="handleTableChange"
+      >
+        <td slot="no" slot-scope="text, record, index">{{ index + 1 }}</td>
+        <td slot="status" slot-scope="text">{{ getStatus(text) }}</td>
+        <template slot="operation" slot-scope="text, record">
+          <template>
+            <a-button type="primary" @click="()=> onUpdate(record.id)">Update</a-button>
+          </template>
+          <template>
+            <a-popconfirm v-if="dataSource.length" title="Sure to Delete?" @confirm="() => onDelete(record.id)">
+              <a-button type="danger" class="btn-delete">Delete</a-button>
+            </a-popconfirm>
+          </template>
         </template>
-        <template>
-          <a-popconfirm v-if="dataSource.length" title="Sure to Delete?" @confirm="() => onDelete(record.id)">
-            <a-button type="danger" class="btn-delete">Delete</a-button>
-          </a-popconfirm>
-        </template>
+      </a-table>
+      <template v-if="addNew">
+        <create-form
+          ref="createAccoungtingPeriod"
+          :visible="true"
+          @cancel="handleCancelCreate"
+          @create="handleAddCreate"
+        />
       </template>
-    </a-table>
-    <template v-if="addNew">
-      <create-form
-        ref="createAccoungtingPeriod"
-        :visible="true"
-        @cancel="handleCancelCreate"
-        @create="handleAddCreate"
-      />
-    </template>
-    <template v-if="selectId != null">
-      <update-form
-        :selectId="selectId"
-        ref="updateAccoungtingPeriod"
-        :visible="true"
-        @cancel="handleCancelUpdate"
-        @update="handleAddUpdate"
-      />
-    </template>
+      <template v-if="selectId != null">
+        <update-form
+          :selectId="selectId"
+          ref="updateAccoungtingPeriod"
+          :visible="true"
+          @cancel="handleCancelUpdate"
+          @update="handleAddUpdate"
+        />
+      </template>
+    </a-card>
   </page-header-wrapper>
 </template>
 <script>
@@ -98,6 +101,11 @@ export default {
           dataIndex: 'close-date'
         },
         {
+          title: 'Status',
+          dataIndex: 'status',
+          scopedSlots: { customRender: 'status' }
+        },
+        {
           title: 'Operation',
           width: '20%',
           scopedSlots: { customRender: 'operation' }
@@ -114,6 +122,10 @@ export default {
     }
   },
   methods: {
+    getStatus (status) {
+      return status === 1 ? 'Open'
+              : status === 2 ? 'Close' : 'Cancel'
+    },
     onCellChange (key, dataIndex, value) {
       const dataSource = [...this.dataSource]
       const target = dataSource.find((item) => item.key === key)
@@ -123,8 +135,12 @@ export default {
       }
     },
     onDelete (key) {
-      const dataSource = [...this.dataSource]
-      this.dataSource = dataSource.filter((item) => item.key !== key)
+      AccountingPeriodRepository.delete(key).then((res) => {
+        if (res.success) {
+          this.$message.success('This accounting period is cancel')
+        }
+      }
+      )
     },
     handleCancelCreate () {
       this.addNew = false
@@ -188,7 +204,7 @@ export default {
         this.dates['close-date'] = dateString
     },
     onUpdate (id) {
-        this.selectId = id
+      this.selectId = id
     }
   },
   mounted () {

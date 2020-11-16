@@ -31,27 +31,34 @@ var request = _axios["default"].create({
   timeout: 6000
 });
 
+var token = _store2["default"].get(_mutationTypes.ACCESS_TOKEN);
+
 var errorHandler = function errorHandler(error) {
   if (error.response) {
     var data = error.response.data;
 
-    var token = _store2["default"].get(_mutationTypes.ACCESS_TOKEN);
-
-    if (error.response.status_code === 403) {
+    if (data['status-code'] === 403) {
       _notification["default"].error({
         message: 'Forbidden',
         description: data.message
       });
     }
 
-    if (error.response.status_code === 500) {
+    if (data['status-code'] === 500) {
       _notification["default"].error({
         message: 'Internal Server Error',
         description: data.results
       });
     }
 
-    if (error.response.status_code === 401 && !(data.result && data.result.isLogin)) {
+    if (data['status-code'] === 400) {
+      _notification["default"].error({
+        message: 'Bad request',
+        description: data.results
+      });
+    }
+
+    if (data['status-code'] === 401) {
       _notification["default"].error({
         message: 'Unauthorized',
         description: 'Authorization verification failed'
@@ -75,14 +82,29 @@ request.interceptors.request.use(function (config) {
   var token = _store2["default"].get(_mutationTypes.ACCESS_TOKEN);
 
   if (token) {
-    config.headers['Access-Token'] = token;
+    config.headers.common['Authorization'] = 'Bearer ' + token;
   }
 
   return config;
 }, errorHandler); // xử lí response
 
 request.interceptors.response.use(function (response) {
-  return response.data;
+  var res = response.data;
+
+  if (res['status-code'] === 401) {
+    _notification["default"].error({
+      message: 'Unauthorized',
+      description: 'Authorization verification failed'
+    });
+
+    _store["default"].dispatch('Logout').then(function () {
+      setTimeout(function () {
+        window.location.reload();
+      }, 1500);
+    });
+  } else {
+    return res;
+  }
 }, errorHandler);
 var _default = request;
 exports["default"] = _default;

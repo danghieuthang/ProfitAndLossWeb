@@ -15,24 +15,30 @@ const request = axios.create({
     },
     timeout: 6000
 })
+const token = storage.get(ACCESS_TOKEN)
 
 const errorHandler = (error) => {
   if (error.response) {
     const data = error.response.data
-    const token = storage.get(ACCESS_TOKEN)
-    if (error.response.status_code === 403) {
+    if (data['status-code'] === 403) {
       notification.error({
         message: 'Forbidden',
         description: data.message
       })
     }
-    if (error.response.status_code === 500) {
+    if (data['status-code'] === 500) {
       notification.error({
         message: 'Internal Server Error',
         description: data.results
       })
     }
-    if (error.response.status_code === 401 && !(data.result && data.result.isLogin)) {
+    if (data['status-code'] === 400) {
+      notification.error({
+        message: 'Bad request',
+        description: data.results
+      })
+    }
+    if (data['status-code'] === 401) {
       notification.error({
         message: 'Unauthorized',
         description: 'Authorization verification failed'
@@ -53,14 +59,25 @@ const errorHandler = (error) => {
 request.interceptors.request.use(config => {
   const token = storage.get(ACCESS_TOKEN)
   if (token) {
-    config.headers['Access-Token'] = token
+    config.headers.common['Authorization'] = 'Bearer ' + token
   }
   return config
 }, errorHandler)
 
 // xử lí response
 request.interceptors.response.use((response) => {
-  return response.data
+  var res = response.data
+  if (res['status-code'] === 401) {
+    notification.error({
+      message: 'Unauthorized',
+      description: 'Authorization verification failed'
+    })
+      store.dispatch('Logout').then(() => {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1500)
+      })
+  } else { return res }
 }, errorHandler)
 
 export default request

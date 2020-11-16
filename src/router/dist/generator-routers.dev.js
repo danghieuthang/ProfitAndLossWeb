@@ -89,26 +89,6 @@ var constantRouterComponents = {
       return _interopRequireWildcard(require('@/views/list/CardList'));
     });
   },
-  'SearchLayout': function SearchLayout() {
-    return Promise.resolve().then(function () {
-      return _interopRequireWildcard(require('@/views/list/search/SearchLayout'));
-    });
-  },
-  'SearchArticles': function SearchArticles() {
-    return Promise.resolve().then(function () {
-      return _interopRequireWildcard(require('@/views/list/search/Article'));
-    });
-  },
-  'SearchProjects': function SearchProjects() {
-    return Promise.resolve().then(function () {
-      return _interopRequireWildcard(require('@/views/list/search/Projects'));
-    });
-  },
-  'SearchApplications': function SearchApplications() {
-    return Promise.resolve().then(function () {
-      return _interopRequireWildcard(require('@/views/list/search/Applications'));
-    });
-  },
   'ProfileBasic': function ProfileBasic() {
     return Promise.resolve().then(function () {
       return _interopRequireWildcard(require('@/views/profile/basic'));

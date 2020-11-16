@@ -7,6 +7,9 @@ export default {
     getAll () {
         return Repository.get(`${resource}`)
     },
+    getStillOpen () {
+        return Repository.get(`${resource}/still-open`)
+    },
     searchById (id) {
         return Repository.get(`${resource}/${id}`)
     },
@@ -17,6 +20,6 @@ export default {
         return Repository.put(`${resource}`, data)
     },
     delete (id) {
-        return Repository.put(`${resource}/delete`, id)
+        return Repository.delete(`${resource}/${id}`)
     }
 }

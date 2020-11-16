@@ -19,7 +19,7 @@ var _default = {
     });
   },
   add: function add(data) {
-    return _Repository["default"].post("".concat(resource), data);
+    return _Repository["default"].post("".concat(resource, "/add-multi"), data);
   }
 };
 exports["default"] = _default;

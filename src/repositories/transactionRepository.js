@@ -1,5 +1,5 @@
 import Repository from './Repository'
-const resource = '/transactions'
+const resource = '/receipts'
 export default {
     search (params) {
         return Repository.post(`${resource}/search`, params)
@@ -15,5 +15,8 @@ export default {
     },
     reject (id) {
         return Repository.put(`${resource}/reject`, id)
+    },
+    getTransactionDetailByTransactionId (id) {
+        return Repository.get(`${resource}/${id}/transaction-details`)
     }
 }

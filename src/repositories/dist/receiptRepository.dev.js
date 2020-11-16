@@ -18,6 +18,9 @@ var _default = {
   },
   createReceipt: function createReceipt(data) {
     return _Repository["default"].post("".concat(resource), data);
+  },
+  getEvidenceByTransactionId: function getEvidenceByTransactionId(id) {
+    return _Repository["default"].get("".concat(resource, "/search/").concat(id));
   }
 };
 exports["default"] = _default;

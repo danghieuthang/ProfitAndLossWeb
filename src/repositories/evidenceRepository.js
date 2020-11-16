@@ -9,6 +9,7 @@ export default {
         })
     },
     add (data) {
-        return Repository.post(`${resource}`, data)
+        return Repository.post(`${resource}/add-multi`, data)
     }
+
 }

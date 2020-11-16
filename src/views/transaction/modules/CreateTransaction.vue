@@ -14,8 +14,8 @@
       <a-form-item label="Store">
         <a-select v-model="transaction['store-id']" de>
           <!-- <a-select-option>Please select store: </a-select-option> -->
-          <a-select-option v-for="store in stores" :key="store.id">
-            {{ store.code }} - {{ store.name }}
+          <a-select-option v-for="st in stores" :key="st.id">
+            {{ st.code }} - {{ st.name }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -33,7 +33,7 @@
       </a-form-item>
       <a-form-item label="Balance">
         <a-input
-          v-model="transaction.balance"
+          v-model="transaction['total-balance']"
           type="number"
           v-decorator="[
             'price',
@@ -74,15 +74,13 @@
 
 <script>
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
-import config from '@/config/firebase.config'
-import FireBase from 'firebase'
+import firebase from '@/config/firebase.config'
 const StoreRepository = RepositoryFactory.get('stores')
 const SupplierRepository = RepositoryFactory.get('suppliers')
 const TransactionTypeRepository = RepositoryFactory.get('transaction-types')
 const TransactionRepository = RepositoryFactory.get('transactions')
 const EvidenceRepository = RepositoryFactory.get('evidences')
 
-FireBase.initializeApp(config)
 export default {
   props: {
     visible: {
@@ -117,9 +115,11 @@ export default {
       transaction: {
         'store-id': '',
         'note-message': '',
-        balance: 0,
+        'total-balance': 0,
         'transaction-type-id': '',
         'supplier-id': '',
+        'shipping-fee': 0,
+        'discount-value': 0,
         receipt: {
           description: ''
         }
@@ -147,7 +147,7 @@ export default {
   },
   methods: {
     checkBalance (rule, value, callback) {
-      if (this.transaction.balance > 0) {
+      if (this.transaction['total-balance'] > 0) {
         callback()
         return
       }
@@ -159,8 +159,9 @@ export default {
         if (!err) {
           TransactionRepository.create(this.transaction).then((res) => {
             if (res.success) {
-              this.createEvidence(res.results['receipt-id'])
-              this.$emit('addTransaction', res.results)
+              this.addEvidence(res.results['receipt-id'])
+              // this.$emit('addTransaction', res.results)
+              this.$router.push({ path: `${this.$route.path}/transactions/${res.results.id}` })
             } else {
               this.$message.error(`Add transaction faild: ${res.results}`)
             }
@@ -172,7 +173,7 @@ export default {
     uploadFirebase (image, id) {
       return new Promise((resolve) => {
         setTimeout(() => {
-          const storageRef = FireBase.storage().ref(`${image.name}`).put(image)
+          const storageRef = firebase.storage().ref(`${image.name}`).put(image)
           storageRef.on(
             `state_changed`,
             (snapshot) => {
@@ -199,6 +200,7 @@ export default {
       const evidences = []
       for (var i = 0; i < this.file.length; i++) {
         const image = this.file[i]
+        console.log(`upload ${i}`)
         const newEvidence = await this.uploadFirebase(image, id)
         evidences.push(newEvidence)
       }
@@ -212,6 +214,23 @@ export default {
             console.log('add evidence error')
           }
       })
+    },
+    addEvidence (id) {
+      for (var i = 0; i < this.file.length; i++) {
+          const image = this.file[i]
+
+          const formData = new FormData()
+          formData.append('image', image)
+          formData.append('receipt-id', id)
+          formData.append('name', image.name)
+          EvidenceRepository.addEvidence(formData).then((res) => {
+          if (res.success) {
+            console.log('add evidence success')
+          } else {
+            console.log('add evidence error')
+          }
+      })
+      }
     },
     onImageChange (e) {
       const files = e.target.files || e.dataTransfer.files

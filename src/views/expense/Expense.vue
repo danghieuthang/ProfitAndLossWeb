@@ -134,73 +134,14 @@
           <a @click="viewDetail(record.store.brand.code, record.store.code, record.id)">Detail</a>
         </template>
       </a-table>
-      <template v-if="addTransaction">
-        <create-transaction
-          ref="createtransaction"
-          :visible="true"
-          @cancel="handleCancel"
-          @addTransaction="addedTransaction"
-        />
-      </template>
     </a-card>
   </page-header-wrapper>
 </template>
 <script>
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
-import CreateTransaction from './modules/CreateTransaction'
 const TransactionTypeRepository = RepositoryFactory.get('transaction-types')
 const TransactionRepository = RepositoryFactory.get('transactions')
 const StoreRepository = RepositoryFactory.get('stores')
-
-const EditableCell = {
-  template: `
-      <div class="editable-cell">
-        <div v-if="editable" class="editable-cell-input-wrapper">
-          <a-input :value="value" @change="handleChange" @pressEnter="check" /><a-icon
-            type="check"
-            class="editable-cell-icon-check"
-            @click="check"
-          />
-        </div>
-        <div v-else class="editable-cell-text-wrapper">
-          {{ value || ' ' }}
-          <a-icon type="edit" class="editable-cell-icon" @click="edit" />
-        </div>
-      </div>
-    `,
-  props: {
-    text: String
-  },
-  data () {
-    return {
-      value: this.text,
-      editable: false
-    }
-  },
-  methods: {
-    handleChange (e) {
-      const value = e.target.value
-      this.value = value
-    },
-    check () {
-      this.editable = false
-      this.$emit('change', this.value)
-    },
-    edit () {
-      this.editable = true
-    },
-    toNormalString (status) {
-      switch (status) {
-        case 1:
-          return 'Processing'
-        case 2:
-          return 'Approval'
-        default:
-          return 'NA'
-      }
-    }
-  }
-}
 
 const columns = [
   {
@@ -224,8 +165,8 @@ const columns = [
     scopedSlots: { customRender: 'type' }
   },
   {
-    title: 'Total-Balance',
-    dataIndex: 'total-balance'
+    title: 'Balance',
+    dataIndex: 'balance'
   },
   {
     title: 'Status',
@@ -247,8 +188,6 @@ const transactionStatus = [
 ]
 export default {
   components: {
-    EditableCell,
-    CreateTransaction
   },
   data () {
     return {

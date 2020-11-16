@@ -9,7 +9,7 @@ var _Repository = _interopRequireDefault(require("./Repository"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-var resource = '/transactions';
+var resource = '/receipts';
 var _default = {
   search: function search(params) {
     return _Repository["default"].post("".concat(resource, "/search"), params);
@@ -25,6 +25,9 @@ var _default = {
   },
   reject: function reject(id) {
     return _Repository["default"].put("".concat(resource, "/reject"), id);
+  },
+  getTransactionDetailByTransactionId: function getTransactionDetailByTransactionId(id) {
+    return _Repository["default"].get("".concat(resource, "/").concat(id, "/transaction-details"));
   }
 };
 exports["default"] = _default;
