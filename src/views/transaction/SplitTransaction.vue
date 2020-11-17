@@ -9,6 +9,19 @@
           <a-descriptions-item label="Description">{{ transaction['note-message'] }}</a-descriptions-item>
         </a-descriptions>
       </div>
+      <a-card
+        :bordered="false"
+        style="margin-top: 24px"
+        title="Evidence Details">
+        <a-descriptions title="">
+        <!-- <a-descriptions-item label="Description">{{ receipt.description }}</a-descriptions-item> -->
+        </a-descriptions>
+        <a-row :gutter="48">
+          <a-col :md="8" :sm="24" v-for="item in evidences" :key="item.id">
+            <img :src="item['img-url']" :alt="item.name" class="zoom">
+          </a-col>
+        </a-row>
+      </a-card>
       <a-button type="primary" class="editable-add-btn" @click="handleAdd"> Add Line </a-button>
       <a-table
         :loading="loading"
@@ -97,7 +110,7 @@
           </div>
         </template>
       </a-table>
-      <template v-if="showUpdateTable">
+      <!-- <template v-if="showUpdateTable">
         <a-table
           style="margin-top: 20px"
           :loading="loading"
@@ -158,8 +171,7 @@
             </div>
           </template>
         </a-table>
-      </template>
-
+      </template> -->
       <div class="center">
         <a-button type="primary" @click="submitSplit"> Submit </a-button>
         <a-divider type="vertical" />
@@ -226,8 +238,9 @@ data.push({
   accountingPeriodName: '',
   'accounting-period-id': '',
   description: '',
-  'transaction-id': '',
-  balance: 0
+  'receipt-id': '',
+  balance: 0,
+  evidences: []
 })
 
 export default {
@@ -244,7 +257,8 @@ export default {
       categories: [],
       accountingPeriods: [],
       stores: [],
-      loading: true
+      loading: true,
+      currentAccountingPeriod: null
     }
   },
   props: {},
@@ -360,6 +374,9 @@ export default {
     onDelete (key) {
       const dataSource = [...this.data]
       this.data = dataSource.filter((item) => item.key !== key)
+      if (this.editingKey === key) {
+        this.editingKey = ''
+      }
     },
     getTotalBalance () {
       return this.data.reduce((a, b) => a + (b.balance || 0), 0)
@@ -377,27 +394,34 @@ export default {
         'store-id': this.transaction.store.id,
         storeName: this.transaction.store.code,
         'transaction-category-id': this.categories[0].id,
-        'accounting-period-id': this.accountingPeriods[0].id,
+        'accounting-period-id': this.currentAccountingPeriod,
         categoryName: this.categories[0].name,
         accountingPeriodName: this.accountingPeriods[0].title,
         description: '',
-        'transaction-id': this.transaction.id,
+        'receipt-id': this.transaction.id,
         balance: balanceAvailable
       }
       this.data = [...data, newData]
       this.count = count + 1
+    },
+     formatDateTime (date) {
+        var today = new Date()
+        var dd = String(today.getDate()).padStart(2, '0')
+        var mm = String(today.getMonth() + 1).padStart(2, '0') // January is 0!
+        var yyyy = today.getFullYear()
+        return mm + '/' + dd + '/' + yyyy
     },
     loadData () {
       const id = this.$route.params.id
       TransactionRepository.searchById(id).then((res) => {
         const rs = res.results
         this.transaction = rs
-        console.log(this.transaction['transaction-type'].code === 'SAL')
-        this.showUpdateTable = this.transaction['transaction-type'].code === 'SAL'
+        console.log(this.transaction['receipt-type'].code === 'SAL')
+        this.showUpdateTable = this.transaction['receipt-type'].code === 'SAL'
         if (rs) {
-          this.data[0]['transaction-id'] = rs.id
+          this.data[0]['receipt-id'] = rs.id
           this.data[0].balance = rs['sub-total']
-          TransactionCategoryRepository.getByTypeId(rs['transaction-type'].id).then((res) => {
+          TransactionCategoryRepository.getByTypeId(rs['receipt-type'].id).then((res) => {
             const rs = res.results
             this.categories = rs
             this.data[0]['transaction-category-id'] = rs[0].id
@@ -406,8 +430,10 @@ export default {
           AccountingPeriodRepository.getStillOpen().then((res) => {
             const rs = res.results
             this.accountingPeriods = rs
-            this.data[0]['accounting-period-id'] = rs[0].id
-            this.data[0].accountingPeriodName = rs[0].title
+            const currentAccountingPeriod = rs.filter(x => new Date(x['start-date'].split('T')[0]) <= new Date() && new Date(x['close-date'].split('T')[0]) >= new Date())
+            this.currentAccountingPeriod = currentAccountingPeriod[0].id
+            this.data[0]['accounting-period-id'] = currentAccountingPeriod[0].id
+            this.data[0].accountingPeriodName = currentAccountingPeriod[0].title
           })
           StoreRepository.get().then((res) => {
             const rs = res.results
@@ -415,26 +441,29 @@ export default {
             this.data[0]['store-id'] = this.transaction.store.id
             this.data[0].storeName = this.transaction.store.code
           })
-          if (this.transaction['transaction-type'].code === 'SAL') {
-            TransactionRepository.getTransactionDetailByTransactionId(rs.id).then((res) => {
-              res.results.forEach((element, index) => {
-                this.dataUpdate.push({
-                  id: element.id,
-                  key: index,
-                  'store-id': element.store.id,
-                  storeName: element.store.code,
-                  'transaction-category-id': element['transaction-category'].id,
-                  'accounting-period-id': element['accounting-period'].id,
-                  categoryName: element['transaction-category'].name,
-                  accountingPeriodName: element['accounting-period'].title,
-                  description: element.description,
-                  'transaction-id': this.transaction.id,
-                  balance: element.balance
-                })
-              })
-              this.categories = this.categories.filter(x => x.code !== 'SAL-DIS')
-            })
-          }
+          TransactionRepository.getEvidenceByTransactionId(id).then((res) => {
+          this.evidences = res.results
+          })
+          // if (this.transaction['receipt-type'].code === 'SAL') {
+          //   TransactionRepository.getTransactionDetailByTransactionId(rs.id).then((res) => {
+          //     res.results.forEach((element, index) => {
+          //       this.dataUpdate.push({
+          //         id: element.id,
+          //         key: index,
+          //         'store-id': element.store.id,
+          //         storeName: element.store.code,
+          //         'transaction-category-id': element['transaction-category'].id,
+          //         'accounting-period-id': element['accounting-period'].id,
+          //         categoryName: element['transaction-category'].name,
+          //         accountingPeriodName: element['accounting-period'].title,
+          //         description: element.description,
+          //         'receipt-id': this.transaction.id,
+          //         balance: element.balance
+          //       })
+          //     })
+          //     this.categories = this.categories.filter(x => x.code !== 'SAL-DIS')
+          //   })
+          // }
 
           this.loading = false
         } else {
@@ -450,14 +479,17 @@ export default {
         TransactionDetailRepository.create(this.data).then((res) => {
           var result = res
           if (result.success) {
-            TransactionDetailRepository.update(this.dataUpdate).then((res) => {
-              if (res.success) {
-                this.$message.success('Split transaction successfull')
-                this.$router.push({
+            // TransactionDetailRepository.update(this.dataUpdate).then((res) => {
+            //   if (res.success) {
+            //     this.$message.success('Split transaction successfull')
+            //     this.$router.push({
+            //       path: `${this.$route.path.split('/split')[0]}`
+            //     })
+            //   }
+            // })
+            this.$router.push({
                   path: `${this.$route.path.split('/split')[0]}`
                 })
-              }
-            })
           } else {
             this.$message.error(result.message)
           }

@@ -210,7 +210,7 @@ const columns = [
   },
   {
     title: 'Type',
-    dataIndex: 'transaction-type',
+    dataIndex: 'receipt-type',
     scopedSlots: { customRender: 'type' }
   },
   {
@@ -336,10 +336,11 @@ export default {
       this.loadData()
     },
     onSplit (brandCode, storeCode, id) {
-      this.$router.push({ path: `${this.$route.path}/transactions/${id}/split` })
+      this.$router.push({ path: `${this.$route.path}/${id}/split` })
     },
     viewDetail (brandCode, storeCode, id) {
-      this.$router.push({ path: `${this.$route.path}/transactions/${id}` })
+      console.log(`${this.$route.path}/${id}`)
+      this.$router.push({ path: `${this.$route.path}/${id}` })
     },
     addNewTransaction () {
       this.addTransaction = true

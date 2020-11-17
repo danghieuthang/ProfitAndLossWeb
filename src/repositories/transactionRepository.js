@@ -17,6 +17,9 @@ export default {
         return Repository.put(`${resource}/reject`, id)
     },
     getTransactionDetailByTransactionId (id) {
-        return Repository.get(`${resource}/${id}/transaction-details`)
+        return Repository.get(`${resource}/${id}/transactions`)
+    },
+    getEvidenceByTransactionId (id) {
+        return Repository.get(`${resource}/${id}/evidences`)
     }
 }

@@ -12,15 +12,18 @@
           :xs="24"
           v-for="store in stores"
           :key="store.id">
-          <a-button type="primary" @click="openStore(store.id)">
-            {{ store.code }} - {{ store.name }}
-          </a-button>
+          <h1></h1>
           <div style="margin-top: 14px">
             <h4>Code: {{ store.code }}</h4>
             <h4>Name: {{ store.name }}</h4>
-            <h4>Created Date: {{ formatDateTime(store['created-date']) }}</h4>
-            <h4>Modifed Date: {{ formatDateTime(store['modified-date']) }}</h4>
           </div>
+          <a-button type="primary" @click="openReceipts(store.id)">
+            View Receipts
+          </a-button>
+          <a-divider type="vertical" />
+          <a-button type="primary" @click="openTransactions(store.id)">
+            View Transactions
+          </a-button>
         </a-col>
       </a-row>
     </a-card>
@@ -50,9 +53,13 @@ export default {
         this.stores = rs
       })
     },
-    openStore (store) {
+    openReceipts (store) {
       console.log(store)
-      this.$router.push({ path: `/stores/${store}` })
+      this.$router.push({ path: `/stores/${store}/receipts` })
+    },
+    openTransactions (store) {
+      console.log(store)
+      this.$router.push({ path: `/stores/${store}/transactions` })
     }
   },
   mounted () {

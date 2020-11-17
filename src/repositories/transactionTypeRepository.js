@@ -1,5 +1,5 @@
 import Repository from './Repository'
-const resource = '/transaction-types'
+const resource = '/receipt-types'
 export default {
     get () {
         return Repository.get(`${resource}`)

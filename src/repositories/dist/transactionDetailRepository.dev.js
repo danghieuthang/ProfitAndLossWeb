@@ -19,6 +19,11 @@ var _default = {
   },
   searchByTransactionId: function searchByTransactionId(id) {
     return _Repository["default"].get("".concat(resource, "/receipt/").concat(id));
+  },
+  search: function search(params) {
+    return _Repository["default"].get("".concat(resource), {
+      params: params
+    });
   }
 };
 exports["default"] = _default;

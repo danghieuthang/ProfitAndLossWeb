@@ -270,7 +270,8 @@ export default {
       AccountingPeriodRepository.getAll().then((res) => {
         const rs = res.results
         this.accountingPeriods = rs
-        this.search['accounting-period-id'] = rs[0].id
+        const currentA = rs.filter(x => new Date(x['start-date'].split('T')[0]) <= new Date() && new Date(x['close-date'].split('T')[0]) >= new Date())
+        this.search['accounting-period-id'] = currentA[0].id
       })
       StoreRepository.get().then((res) => {
         const rs = res.results

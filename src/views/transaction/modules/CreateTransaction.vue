@@ -1,7 +1,7 @@
 <template>
   <a-modal
     :visible="visible"
-    title="Add new transaction"
+    title="Add new receipt"
     okText="Add"
     @cancel="
       () => {
@@ -16,6 +16,13 @@
           <!-- <a-select-option>Please select store: </a-select-option> -->
           <a-select-option v-for="st in stores" :key="st.id">
             {{ st.code }} - {{ st.name }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <a-form-item label="Receipt Type">
+        <a-select v-model="transaction['receipt-type-id']" de>
+          <a-select-option v-for="type in types" :key="type.id" :value="type.id">
+            {{ type.name }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -51,17 +58,14 @@
           </a-select-option>
         </a-select>
       </a-form-item>
-      <a-form-item label="Transaction Type">
-        <a-select v-model="transaction['transaction-type-id']" de>
-          <a-select-option v-for="type in types" :key="type.id" :value="type.id">
-            {{ type.name }}
-          </a-select-option>
-        </a-select>
+      <a-form-item label="Open Date - Close Date">
+        <a-range-picker
+          :ranges="{ Today: [moment(), moment()], 'This Month': [moment(), moment().endOf('month')] }"
+          @change="onChangeDatePicker"
+        />
       </a-form-item>
+
       <h1 class="receipt-form"></h1>
-      <a-form-item label="Receipt Description">
-        <a-input v-model="transaction.receipt.description" type="textarea" />
-      </a-form-item>
       <a-form-item label="Upload Evidence" extra="">
         <a-input type="file" @change="onImageChange" multiple />
         <div id="preview">
@@ -73,6 +77,7 @@
 </template>
 
 <script>
+import moment from 'moment'
 import { RepositoryFactory } from '@/repositories/RepositoryFactory'
 import firebase from '@/config/firebase.config'
 const StoreRepository = RepositoryFactory.get('stores')
@@ -108,6 +113,7 @@ export default {
       }
     }
     return {
+      dateFormat: 'YYYY/MM/DD',
       form: this.$form.createForm(this),
       stores: [],
       suppliers: [],
@@ -116,13 +122,11 @@ export default {
         'store-id': '',
         'note-message': '',
         'total-balance': 0,
-        'transaction-type-id': '',
+        'receipt-type-id': '',
         'supplier-id': '',
         'shipping-fee': 0,
-        'discount-value': 0,
-        receipt: {
-          description: ''
-        }
+        'description': '',
+        'discount-value': 0
       },
       file: null,
       imageUrl: null
@@ -142,10 +146,11 @@ export default {
     TransactionTypeRepository.get().then((res) => {
       const rs = res.results
       this.types = rs
-      this.transaction['transaction-type-id'] = rs[0].id
+      this.transaction['receipt-type-id'] = rs[0].id
     })
   },
   methods: {
+    moment,
     checkBalance (rule, value, callback) {
       if (this.transaction['total-balance'] > 0) {
         callback()
@@ -159,9 +164,9 @@ export default {
         if (!err) {
           TransactionRepository.create(this.transaction).then((res) => {
             if (res.success) {
-              this.addEvidence(res.results['receipt-id'])
+              this.addEvidence(res.results.id)
               // this.$emit('addTransaction', res.results)
-              this.$router.push({ path: `${this.$route.path}/transactions/${res.results.id}` })
+              this.$router.push({ path: `${this.$route.path}/${res.results.id}` })
             } else {
               this.$message.error(`Add transaction faild: ${res.results}`)
             }
@@ -242,6 +247,10 @@ export default {
       files.forEach((file) => this.imageUrl.push(URL.createObjectURL(file)))
       // this.imageUrl = URL.createObjectURL(this.file)
       this.previewVisible = true
+    },
+    onChangeDatePicker (dates, dateStrings) {
+      this.transaction['open-date'] = dateStrings[0]
+      this.transaction['close-date'] = dateStrings[2]
     }
   }
 }

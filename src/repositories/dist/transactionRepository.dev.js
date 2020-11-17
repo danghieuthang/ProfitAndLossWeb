@@ -27,7 +27,10 @@ var _default = {
     return _Repository["default"].put("".concat(resource, "/reject"), id);
   },
   getTransactionDetailByTransactionId: function getTransactionDetailByTransactionId(id) {
-    return _Repository["default"].get("".concat(resource, "/").concat(id, "/transaction-details"));
+    return _Repository["default"].get("".concat(resource, "/").concat(id, "/transactions"));
+  },
+  getEvidenceByTransactionId: function getEvidenceByTransactionId(id) {
+    return _Repository["default"].get("".concat(resource, "/").concat(id, "/evidences"));
   }
 };
 exports["default"] = _default;

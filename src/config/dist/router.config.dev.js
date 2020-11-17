@@ -91,44 +91,66 @@ var asyncRouterMap = [{
 
     }, {
       path: '/stores/:store',
+      redirect: '/stores/:store/receipts',
+      name: 'Receipts In Store',
+      hidden: true,
+      component: RouteView,
+      meta: {
+        title: 'Receipts in Store',
+        keepAlive: false
+      },
+      children: [{
+        path: '/stores/:store/receipts',
+        name: 'Receipts In Store',
+        hidden: true,
+        component: function component() {
+          return Promise.resolve().then(function () {
+            return _interopRequireWildcard(require('@/views/transaction/TransactionInStore'));
+          });
+        },
+        meta: {
+          title: 'Receipt in Store',
+          keepAlive: false
+        }
+      }, {
+        path: '/stores/:store/receipts/:id/split',
+        name: 'Split Receipt',
+        hidden: true,
+        component: function component() {
+          return Promise.resolve().then(function () {
+            return _interopRequireWildcard(require('@/views/transaction/SplitTransaction'));
+          });
+        },
+        meta: {
+          title: 'Receipt Split',
+          keepAlive: false
+        }
+      }, {
+        path: '/stores/:store/receipts/:id',
+        name: 'Detail Receipts',
+        hidden: true,
+        component: function component() {
+          return Promise.resolve().then(function () {
+            return _interopRequireWildcard(require('@/views/transaction/TransactionDetail'));
+          });
+        },
+        meta: {
+          title: 'Receipt Details',
+          keepAlive: true
+        }
+      }]
+    }, {
+      path: '/stores/:store/transactions',
       name: 'Transaction In Store',
       hidden: true,
       component: function component() {
         return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/transaction/TransactionInStore'));
+          return _interopRequireWildcard(require('@/views/transactiondetail/ListTransactionDetail'));
         });
       },
       meta: {
         title: 'Transaction in Store',
         keepAlive: false
-      },
-      props: {} // children: stores
-
-    }, {
-      path: '/stores/:store/transactions/:id/split',
-      name: 'Split Transaction',
-      hidden: true,
-      component: function component() {
-        return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/transaction/SplitTransaction'));
-        });
-      },
-      meta: {
-        title: 'Transaction Split',
-        keepAlive: false
-      }
-    }, {
-      path: '/stores/:store/transactions/:id',
-      name: 'Detail Transaction',
-      hidden: true,
-      component: function component() {
-        return Promise.resolve().then(function () {
-          return _interopRequireWildcard(require('@/views/transaction/TransactionDetail'));
-        });
-      },
-      meta: {
-        title: 'Transaction Details',
-        keepAlive: true
       }
     }]
   }, // // transaction

@@ -9,5 +9,9 @@ export default {
     },
     searchByTransactionId (id) {
         return Repository.get(`${resource}/receipt/${id}`)
+    },
+    search (params) {
+        return Repository.get(`${resource}`, { params: params })
     }
+
 }

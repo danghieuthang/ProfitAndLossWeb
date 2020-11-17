@@ -63,9 +63,6 @@
                     </a-select>
                   </a-form-item>
                 </a-col>
-                <a-col :xl="12" :lg="12" :md="12" :sm="24" :xs="24">
-                  <a-button type="primary">Details</a-button>
-                </a-col>
               </a-form>
             </div>
           </a-col>
@@ -133,8 +130,9 @@ export default {
       AccountingPeriodRepository.getAll().then((res) => {
             const rs = res.results
             this.accountingPeriods = rs
-            this.searchRevenueExpense['accounting-period-id'] = rs[0].id
-            this.search['accounting-period-id'] = rs[0].id
+            const currentA = rs.filter(x => new Date(x['start-date'].split('T')[0]) <= new Date() && new Date(x['close-date'].split('T')[0]) >= new Date())
+            this.searchRevenueExpense['accounting-period-id'] = currentA[0].id
+            this.search['accounting-period-id'] = currentA[0].id
         })
       StoreRepository.get().then((res) => {
             const rs = res.results
