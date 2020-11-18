@@ -12,7 +12,8 @@ var _axios = _interopRequireDefault(require("axios"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 var resource = '/dashboards';
-var baseDomain = 'https://localhost:44383';
+var baseDomain = 'https://pnl-retail.azurewebsites.net/'; // const baseDomain = 'https://localhost:44383'
+
 var apiVersion = 'V1';
 var baseURL = "".concat(baseDomain, "/api/").concat(apiVersion);
 

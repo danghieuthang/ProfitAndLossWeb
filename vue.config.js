@@ -51,7 +51,6 @@ const vueConfig = {
     // if prod, add externals
     externals: isProd ? assetsCDN.externals : {}
   },
-
   chainWebpack: (config) => {
     config.resolve.alias
       .set('@$', resolve('src'))

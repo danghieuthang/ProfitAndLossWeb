@@ -1,27 +1,29 @@
 <template>
   <page-header-wrapper>
-    <a-card :bordered="false">
+    <a-card :bordered="false" title="Receipt Info">
       <div>
-        <a-descriptions title="Transaction">
+        <a-descriptions>
           <a-descriptions-item label="Code">{{ transaction.code }}</a-descriptions-item>
           <a-descriptions-item label="Total balance">{{ transaction['total-balance'] }}</a-descriptions-item>
           <a-descriptions-item label="Sub balance">{{ transaction['sub-total'] }}</a-descriptions-item>
           <a-descriptions-item label="Description">{{ transaction['note-message'] }}</a-descriptions-item>
         </a-descriptions>
       </div>
-      <a-card
-        :bordered="false"
-        style="margin-top: 24px"
-        title="Evidence Details">
-        <a-descriptions title="">
+    </a-card>
+    <a-card
+      :bordered="false"
+      style="margin-top: 24px"
+      title="Evidence Details">
+      <a-descriptions title="">
         <!-- <a-descriptions-item label="Description">{{ receipt.description }}</a-descriptions-item> -->
-        </a-descriptions>
-        <a-row :gutter="48">
-          <a-col :md="8" :sm="24" v-for="item in evidences" :key="item.id">
-            <img :src="item['img-url']" :alt="item.name" class="zoom">
-          </a-col>
-        </a-row>
-      </a-card>
+      </a-descriptions>
+      <a-row :gutter="48">
+        <a-col :md="8" :sm="24" v-for="item in evidences" :key="item.id">
+          <img :src="item['img-url']" :alt="item.name" class="zoom">
+        </a-col>
+      </a-row>
+    </a-card>
+    <a-card>
       <a-button type="primary" class="editable-add-btn" @click="handleAdd"> Add Line </a-button>
       <a-table
         :loading="loading"
@@ -394,9 +396,9 @@ export default {
         'store-id': this.transaction.store.id,
         storeName: this.transaction.store.code,
         'transaction-category-id': this.categories[0].id,
-        'accounting-period-id': this.currentAccountingPeriod,
+        'accounting-period-id': this.currentAccountingPeriod.id,
         categoryName: this.categories[0].name,
-        accountingPeriodName: this.accountingPeriods[0].title,
+        accountingPeriodName: this.currentAccountingPeriod.title,
         description: '',
         'receipt-id': this.transaction.id,
         balance: balanceAvailable
@@ -413,6 +415,9 @@ export default {
     },
     loadData () {
       const id = this.$route.params.id
+       TransactionRepository.getEvidenceByTransactionId(id).then((res) => {
+            this.evidences = res.results
+          })
       TransactionRepository.searchById(id).then((res) => {
         const rs = res.results
         this.transaction = rs
@@ -431,7 +436,7 @@ export default {
             const rs = res.results
             this.accountingPeriods = rs
             const currentAccountingPeriod = rs.filter(x => new Date(x['start-date'].split('T')[0]) <= new Date() && new Date(x['close-date'].split('T')[0]) >= new Date())
-            this.currentAccountingPeriod = currentAccountingPeriod[0].id
+            this.currentAccountingPeriod = currentAccountingPeriod[0]
             this.data[0]['accounting-period-id'] = currentAccountingPeriod[0].id
             this.data[0].accountingPeriodName = currentAccountingPeriod[0].title
           })
@@ -440,9 +445,6 @@ export default {
             this.stores = rs
             this.data[0]['store-id'] = this.transaction.store.id
             this.data[0].storeName = this.transaction.store.code
-          })
-          TransactionRepository.getEvidenceByTransactionId(id).then((res) => {
-          this.evidences = res.results
           })
           // if (this.transaction['receipt-type'].code === 'SAL') {
           //   TransactionRepository.getTransactionDetailByTransactionId(rs.id).then((res) => {
@@ -533,5 +535,18 @@ export default {
   text-align: center;
   margin: auto;
   padding: 10px;
+}
+.zoom {
+  padding: 50px;
+  transition: transform .2s;
+  max-width: 90%;
+  max-height: 600px;
+  margin: 0 auto;
+}
+
+.zoom:hover {
+  -ms-transform: scale(2.0); /* IE 9 */
+  -webkit-transform: scale(2.0); /* Safari 3-8 */
+  transform: scale(2.0);
 }
 </style>

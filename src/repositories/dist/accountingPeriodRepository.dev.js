@@ -33,6 +33,9 @@ var _default = {
   },
   "delete": function _delete(id) {
     return _Repository["default"]["delete"]("".concat(resource, "/").concat(id));
+  },
+  close: function close(id) {
+    return _Repository["default"].put("".concat(resource, "/close/").concat(id));
   }
 };
 exports["default"] = _default;

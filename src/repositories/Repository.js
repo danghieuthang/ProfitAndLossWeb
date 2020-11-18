@@ -3,8 +3,8 @@ import store from '@/store'
 import storage from 'store'
 import notification from 'ant-design-vue/es/notification'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
-const baseDomain = 'https://localhost:44383'
-// const baseDomain = 'https://pnl-swd.azurewebsites.net/'
+// const baseDomain = 'https://localhost:44383'
+const baseDomain = 'https://pnl-retail.azurewebsites.net/'
 const apiVersion = 'v1'
 const baseURL = `${baseDomain}/api/${apiVersion}`
 const request = axios.create({

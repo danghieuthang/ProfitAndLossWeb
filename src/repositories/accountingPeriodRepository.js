@@ -21,5 +21,8 @@ export default {
     },
     delete (id) {
         return Repository.delete(`${resource}/${id}`)
+    },
+    close (id) {
+        return Repository.put(`${resource}/close/${id}`)
     }
 }

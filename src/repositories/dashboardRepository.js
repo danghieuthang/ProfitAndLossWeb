@@ -1,7 +1,8 @@
 import Repository from './Repository'
 import axios from 'axios'
 const resource = '/dashboards'
-const baseDomain = 'https://localhost:44383'
+const baseDomain = 'https://pnl-retail.azurewebsites.net/'
+// const baseDomain = 'https://localhost:44383'
 const apiVersion = 'V1'
 const baseURL = `${baseDomain}/api/${apiVersion}`
 const request = axios.create({

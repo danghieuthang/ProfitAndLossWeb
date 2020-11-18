@@ -36,8 +36,8 @@
             <a-button type="primary" @click="()=> onUpdate(record.id)">Update</a-button>
           </template>
           <template>
-            <a-popconfirm v-if="dataSource.length" title="Sure to Delete?" @confirm="() => onDelete(record.id)">
-              <a-button type="danger" class="btn-delete">Delete</a-button>
+            <a-popconfirm v-if="dataSource.length" title="Sure to Close?" @confirm="() => onDelete(record.id)">
+              <a-button type="danger" class="btn-delete">Close</a-button>
             </a-popconfirm>
           </template>
         </template>
